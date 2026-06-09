@@ -8,6 +8,14 @@ Pipeline: fetch + extract (extractor) -> classify + compute (metrics) -> alert
 (thresholds) -> persist to SQLite (db) -> print the §6.5 terminal table.
 """
 
+
+
+
+
+
+
+
+
 from __future__ import annotations
 
 import sys
@@ -41,6 +49,7 @@ DISPLAY_ROWS = [
     ("loss_provisions_balance", "Loss Prov ($M)", "m"),
 ]
 
+# Table column width settings for aligned output.
 COL_W = 9          # width of each period column
 LABEL_W = 19       # width of the metric label column
 ALERT_W = 14       # width of the alert column
@@ -54,6 +63,8 @@ def _fmt_value(m: MetricResult, kind: str) -> str:
         if m.metric_name == "leverage" and (m.extra.get("ebitda") or 0) <= 0 and m.extra.get("ebitda") is not None:
             return "neg"
         return "n/a"
+        # Leverage = Net Debt / EBITDA. If EBITDA is negative, the ratio is meaningless (negative "x" doesn't make sense).
+        # The system shows "neg" instead of an invalid number.
     if kind == "x":
         return f"{m.value:.2f}x"
     if kind == "pct":
@@ -90,12 +101,20 @@ def print_table(meta, cls, metrics: list[MetricResult], period_ends: list[str]) 
     print(f"Sector: {cls.sector_group} | Volatility: {cls.volatility_cat} | "
           f"Type: {cls.institution_type} | Last updated: {updated}")
     print("═" * width)
+    '''
+    Output Example:
+    Credit Warning System — APPLE INC (AAPL) — CIK 0000320193
+    Sector: Manufacturing / Industrials | Volatility: Standard | Type: corporate
+    '''
 
     # Header row.
     header = "METRIC".ljust(LABEL_W)
     for pe in period_ends:
         header += _period_label(pe).rjust(COL_W)
     header += "  " + "ALERT".ljust(ALERT_W)
+    '''
+    METRIC            Mar 22  Jun 22  Sep 22  Dec 22    ALERT
+    '''
     print(header)
     print("─" * width)
 
@@ -105,7 +124,7 @@ def print_table(meta, cls, metrics: list[MetricResult], period_ends: list[str]) 
         row = label.ljust(LABEL_W)
         for pe in period_ends:
             m = per_period.get(pe)
-            row += (_fmt_value(m, kind) if m else "·").rjust(COL_W)
+            row += (_fmt_value(m, kind) if m else "·").rjust(COL_W)  ## If a metric has no data for a given period (e.g., the company hasn't disclosed it yet), display "·" as a placeholder.
         # Alert = most-recent period's level.
         latest = per_period.get(period_ends[-1]) if period_ends else None
         row += "  " + _alert_cell(latest.alert_level if latest else None).ljust(ALERT_W)
@@ -115,6 +134,18 @@ def print_table(meta, cls, metrics: list[MetricResult], period_ends: list[str]) 
 
     # Flags section — notable flags from the most recent period, deduped. Routine
     # period-derivation provenance is kept in the DB audit trail but not shown here.
+    # ==================================================================
+    # FLAGS SECTION - Display only risk signals, hide data processing traces
+    # ==================================================================
+    # During data extraction, the system adds flags to track how values were derived.
+    # Some flags are just data processing traces (e.g., "Q2 derived: H1 YTD minus Q1").
+    # Users don't need to see these - they only care about actual risk signals.
+    #
+    # routine_prefixes: flags starting with these strings are data processing traces
+    #                   → filtered out (not shown to users)
+    # Non-routine flags: actual risk signals (e.g., "EBITDA <= 0", "debt extraction failed")
+    #                   → displayed to users
+    # ==================================================================
     routine_prefixes = ("Q2 derived", "Q3 derived", "Q4 derived",
                         "H1 YTD stored", "9M YTD stored")
     latest_end = period_ends[-1] if period_ends else None
@@ -125,10 +156,12 @@ def print_table(meta, cls, metrics: list[MetricResult], period_ends: list[str]) 
         if not m or not m.flags:
             continue
         for fl in m.flags:
+            # Skip data processing traces - users don't need to see these
             if fl.startswith(routine_prefixes):
                 continue
+            # Deduplicate: same flag might appear for multiple metrics
             key = f"{label}:{fl}"
-            if key in seen:
+            if key in seen: #DEDUP： Why seen dedup? The same flag may appear on multiple metrics (e.g., "EBITDA negative" affects both leverage and coverage). Show it only once.
                 continue
             seen.add(key)
             flag_lines.append(f"  ⚠ {label}: {fl}")
@@ -142,7 +175,41 @@ def print_table(meta, cls, metrics: list[MetricResult], period_ends: list[str]) 
     print("═" * width)
 
 
+'''
+run() function
+    │
+    ├── SecClient() ────────────────────► from extractor import SecClient
+    │                                      (SEC HTTP client with rate limiting & caching)
+    │
+    ├── extract(cik, client) ───────────► from extractor import extract
+    │                                      (Core extraction: fetches XBRL → parses → organizes into periods)
+    │
+    ├── classify(sic_code) ─────────────► from thresholds import classify
+    │                                      (Maps SIC code → sector group, volatility category, institution type)
+    │
+    ├── compute_metrics(result, type) ──► from metrics import compute_metrics
+    │                                      (Calculates 16 financial metrics × 8 quarters)
+    │
+    ├── assign_alerts(metrics, cls) ────► from thresholds import assign_alerts
+    │                                      (Assigns Watch/Flag/Stress/Critical levels based on thresholds)
+    │
+    ├── db.connect() ───────────────────► from db import connect
+    │                                      (Creates SQLite connection, creates tables if not exist)
+    │
+    ├── db.upsert_issuer(...) ──────────► from db import upsert_issuer
+    │                                      (Insert or update issuer metadata in issuers table)
+    │
+    ├── db.write_metrics(...) ──────────► from db import write_metrics
+    │                                      (Batch insert all MetricResult rows into metric_values table)
+    │
+    └── print_table(...) ───────────────► Defined in same file (line 90)
+                                          (Formats and prints terminal table with alerts)
+'''
+
+
+
 def run(cik: str) -> int:
+    # 1. Extract data
     client = SecClient()
     print(f"Fetching EDGAR data for CIK {cik} …")
     result = extract(cik, client=client)
@@ -150,15 +217,23 @@ def run(cik: str) -> int:
         print(f"✗ Extraction failed — CIK {cik} did not validate or companyfacts unavailable.")
         return 1
 
+    #2. Field classfication
     cls = classify(result.metadata.sic_code)
+
+    #3. Calculate
     metrics = compute_metrics(result, cls.institution_type)
+
+    #4. Distribute the alert level
     assign_alerts(metrics, cls)
 
+    #5. Store into database
     conn = db.connect()
     db.upsert_issuer(conn, result.metadata, cls)
     db.write_metrics(conn, result.metadata.cik, metrics)
     conn.close()
 
+
+    #6. print
     period_ends = [p.period_end for p in result.periods]
     print_table(result.metadata, cls, metrics, period_ends)
     print(f"Stored {len(metrics)} metric rows in {db.DB_PATH}")
@@ -170,3 +245,6 @@ if __name__ == "__main__":
         print("Usage: python cli.py <CIK>")
         sys.exit(2)
     sys.exit(run(sys.argv[1]))
+
+
+

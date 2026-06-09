@@ -307,12 +307,15 @@ class SecClient:
         retries are exhausted. Never raises on transient HTTP errors — the caller marks
         the run failed and continues (§6.6).
         """
+
+        #1. check load
         cached = self._read_cache(cache_name, ttl_s)
         if cached is not None:
             return cached
 
+        #2. make request with retry logic
         for attempt in range(MAX_RETRIES + 1):
-            self._throttle()
+            self._throttle() #limit
             try:
                 resp = self.session.get(url, timeout=REQUEST_TIMEOUT_S)
             except (requests.Timeout, requests.ConnectionError):
@@ -322,7 +325,7 @@ class SecClient:
 
             if resp.status_code == 404:
                 return None  # do not retry — resource does not exist
-            if resp.status_code in (429, 403) or resp.status_code >= 500:
+            if resp.status_code in (429, 403) or resp.status_code >= 500:  #temporary error, retry
                 if not self._backoff(attempt):
                     return None
                 continue
@@ -330,7 +333,7 @@ class SecClient:
                 return None
 
             try:
-                data = resp.json()
+                data = resp.json()  #success
             except json.JSONDecodeError:
                 return None
             self._write_cache(cache_name, data)
@@ -343,9 +346,10 @@ class SecClient:
         """Sleep with exponential backoff + jitter. Returns False once retries exhausted."""
         if attempt >= MAX_RETRIES:
             return False
-        wait = min(BACKOFF_BASE_S * (2 ** attempt) + random.random(), BACKOFF_MAX_S)
+        wait = min(BACKOFF_BASE_S * (2 ** attempt) + random.random(), BACKOFF_MAX_S) #jitter
         time.sleep(wait)
         return True
+        # If multiple clients wait the same fixed interval, they retry simultaneously, causing new collisions (thundering herd effect).
 
 
 # --------------------------------------------------------------------------------------
@@ -375,23 +379,27 @@ def fetch_issuer_metadata(client: SecClient, cik: str) -> Optional[IssuerMetadat
 
     Returns None if the CIK does not resolve to a valid company (validation failure).
     """
-    cik10 = pad_cik(cik)
+    cik10 = pad_cik(cik) #standard 10 digit
     url = f"https://data.sec.gov/submissions/CIK{cik10}.json"
     data = client.get_json(url, cache_name=f"{cik10}_submissions.json")
     if not data:
         return None
-    name = data.get("name")
+    name = data.get("name") #extract company name
     if not name:
         return None  # step 2: no valid company name
 
-    fye_raw = data.get("fiscalYearEnd")  # "MMDD"
+    fye_raw = data.get("fiscalYearEnd")  # "MMDD" the end date of the fiscal year
     fiscal_year_end = None
     if isinstance(fye_raw, str) and len(fye_raw) == 4 and fye_raw.isdigit():
         fiscal_year_end = f"{fye_raw[:2]}-{fye_raw[2:]}"
 
+    # check any 10-K history
     forms = (data.get("filings", {}).get("recent", {}).get("form")) or []
     has_10k = any(str(f).startswith("10-K") for f in forms)  # step 3
+    # data["filings"]["recent"]["form"] returns a list like ["10-K", "10-Q", "8-K", "10-K", ...]
+    # any() returns True if at least one item starts with "10-K"
 
+    #extract SIC code
     sic = data.get("sic")
     return IssuerMetadata(
         cik=cik10,
@@ -418,12 +426,25 @@ def fetch_company_facts(client: SecClient, cik: str) -> Optional[dict]:
 class Fact:
     end: str                      # period end date (ISO)
     val: float
-    accn: Optional[str]
-    form: Optional[str]
-    filed: Optional[str]
+    accn: Optional[str]           # accession number (file number)
+    form: Optional[str]           # 10-K, 10-Q, 8-K
+    filed: Optional[str]          # filing date
     start: Optional[str] = None   # present for duration facts
     span_days: Optional[int] = None
     span_bucket: Optional[str] = None  # Q | H1 | 9M | FY
+
+'''
+Fact(
+    end="2023-06-30",           # period end date
+    start="2023-04-01",         # period start date
+    val=81797000000,            # rev $81.8B
+    accn="0000320193-23-000106",
+    form="10-Q",
+    filed="2023-08-04",
+    span_days=90,               # 90 days
+    span_bucket="Q",            # a season
+)
+'''
 
 
 def _parse_date(s: Optional[str]) -> Optional[date]:
@@ -444,6 +465,42 @@ def _classify_span(start: Optional[str], end: str) -> tuple[Optional[int], Optio
         if lo <= days <= hi:
             return days, bucket
     return days, None  # unclassifiable span
+
+    '''
+    _classify_span("2023-01-01", "2023-03-31")
+        # 返回 (89, "Q")
+
+    _classify_span("2023-01-01", "2023-06-30")  
+        # 返回 (180, "H1")
+    '''
+
+'''
+用户输入 CIK: "320193"
+        │
+        ▼
+pad_cik() → "0000320193"
+        │
+        ├─────────────────────────────────────────────┐
+        │                                             │
+        ▼                                             ▼
+fetch_issuer_metadata()                    fetch_company_facts()
+        │                                             │
+        ▼                                             ▼
+GET /submissions/CIK0000320193.json         GET /api/xbrl/companyfacts/CIK0000320193.json
+        │                                             │
+        ▼                                             ▼
+{                                            {
+  "name": "APPLE INC",                         "entityName": "APPLE INC",
+  "tickers": ["AAPL"],                         "facts": {
+  "sic": "3571",                                 "us-gaap": {
+  "fiscalYearEnd": "0930",                        "Cash...": {...},
+  "filings": {...}                                "LongTermDebt...": {...}
+}                                              }
+                                             }
+        │                                             │
+        ▼                                             ▼
+IssuerMetadata                               raw JSON dict
+'''
 
 
 def _iter_usd_facts(company_facts: dict, tag: str) -> list[dict]:
@@ -485,6 +542,22 @@ def _latest_filed(facts: list[Fact]) -> Optional[Fact]:
         facts,
         key=lambda f: (f.filed or "", 1 if (f.form or "").startswith(("10-K", "10-Q")) else 0),
     )[-1]
+
+
+# Why this priority matters? A company may later amend its filings (e.g., 8-K/A) to restate financial data.
+# We use the most recently filed version, even if the original filing had a better form type.
+#
+# Example:
+#   fact1 = Fact(filed="2023-05-01", form="8-K/A")  # amendment
+#   fact2 = Fact(filed="2023-04-15", form="10-Q")   # quarterly report
+#
+# Sort key:
+#   fact1: ("2023-05-01", 0)  ← later date wins
+#   fact2: ("2023-04-15", 1)
+#
+# fact1 wins because it was filed more recently, even though the original 10-Q was superseded.
+
+
 
 
 # --------------------------------------------------------------------------------------
@@ -631,6 +704,26 @@ def _derive_quarterly_series(company_facts: dict, concept: Concept) -> dict[str,
 
     return out
 
+'''
+fiscal year: 2023-01-01 to 2023-12-31
+
+accumulation:
+    Q1 (3M):     $100M  ← directly
+    H1 (6M):     $250M  ← YTD accumulation
+    9M (9M):     $420M  ← YTD accumulation
+    FY (12M):    $600M  ← whole year
+
+Derive:
+    Q2 = H1 - Q1 = $250M - $100M = $150M
+    Q3 = 9M - H1 = $420M - $250M = $170M
+    Q4 = FY - 9M = $600M - $420M = $180M
+
+Output:
+    2023-03-31: $100M (path="reported_quarterly")
+    2023-06-30: $150M (path="derived_quarterly", flags=["Q2 derived..."])
+    2023-09-30: $170M (path="derived_quarterly", flags=["Q3 derived..."])
+    2023-12-31: $180M (path="derived_quarterly", flags=["Q4 derived..."])
+'''
 
 def _ttm(series: dict[str, ResolvedValue], end_dates: list[str]) -> dict[str, ResolvedValue]:
     """Trailing-twelve-month sum at each end date = that quarter + 3 prior quarters (§6.4).
@@ -641,7 +734,7 @@ def _ttm(series: dict[str, ResolvedValue], end_dates: list[str]) -> dict[str, Re
     """
     out: dict[str, ResolvedValue] = {}
     for i, end in enumerate(end_dates):
-        window = end_dates[max(0, i - 3): i + 1]
+        window = end_dates[max(0, i - 3): i + 1] #this season + past 3 season
         if len(window) < 4:
             out[end] = ResolvedValue(None, [], [f"TTM unavailable — only {len(window)} of 4 quarters present"], "none")
             continue
@@ -655,6 +748,42 @@ def _ttm(series: dict[str, ResolvedValue], end_dates: list[str]) -> dict[str, Re
         out[end] = ResolvedValue(total, tags, flags, "ttm")
     return out
 
+'''
+Seasonal Sequence:         Q1    Q2    Q3    Q4    Q5    Q6
+Value:                     100   150   170   180   190   200
+
+TTM Calculation:
+    2023-03-31 (Q1): only 1 season→ None
+    2023-06-30 (Q2): only 2 season → None
+    2023-09-30 (Q3): only 3 season → None
+    2023-12-31 (Q4): Q1+Q2+Q3+Q4 = 100+150+170+180 = 600 ✅
+    2024-03-31 (Q5): Q2+Q3+Q4+Q5 = 150+170+180+190 = 690 ✅
+    2024-06-30 (Q6): Q3+Q4+Q5+Q6 = 170+180+190+200 = 740 ✅
+'''
+
+    # ==================================================================
+    # PERIOD ENGINE: YTD (Year-to-Date) → Quarterly Derivation
+    # ==================================================================
+    # SEC filings report cumulative YTD figures, not standalone quarters:
+    #
+    #   Q1 10-Q: $100M  (Jan-Mar)           ← direct quarter
+    #   Q2 10-Q: $250M  (Jan-Jun YTD)       ← cumulative (H1)
+    #   Q3 10-Q: $420M  (Jan-Sep YTD)       ← cumulative (9M)
+    #   10-K:     $600M  (Jan-Dec YTD)       ← cumulative (FY)
+    #
+    # To get true quarterly values, we subtract:
+    #   Q1 = $100M (direct)
+    #   Q2 = H1 - Q1 = $250M - $100M = $150M
+    #   Q3 = 9M - H1 = $420M - $250M = $170M
+    #   Q4 = FY - 9M = $600M - $420M = $180M
+    #
+    # If a cumulative report (e.g., H1) exists but its preceding period (Q1)
+    # is missing, we store the YTD value with a flag instead of guessing.
+    #
+    # TTM (Trailing Twelve Months) = sum of 4 most recent quarters.
+    # Returns None until 4 quarters are available.
+    # FY != TTM
+    # ==================================================================
 
 # --------------------------------------------------------------------------------------
 # Top-level extraction
@@ -676,7 +805,7 @@ class PeriodInputs:
 
 @dataclass
 class ExtractionResult:
-    metadata: IssuerMetadata
+    metadata: IssuerMetadata                   # company info
     periods: list[PeriodInputs]                # chronological (oldest -> newest)
 
 
@@ -717,14 +846,17 @@ def extract(cik: str, client: Optional[SecClient] = None, num_quarters: int = 8)
     is unavailable.
     """
     client = client or SecClient()
+    # Step 1: Get company metadata (name, SIC, tickers, has_10k)
     meta = fetch_issuer_metadata(client, cik)
     if meta is None or not meta.has_10k:
         return None
 
+    # Step 2: Get all XBRL data for this company
     company_facts = fetch_company_facts(client, cik)
     if not company_facts:
         return None
 
+    # Step 3: Pre-compute quarterly series and TTM for ALL duration concepts
     # Build the full quarterly duration + TTM series once (needs deep history for TTM).
     quarterly_series: dict[str, dict[str, ResolvedValue]] = {}
     ttm_series: dict[str, dict[str, ResolvedValue]] = {}
@@ -733,20 +865,55 @@ def extract(cik: str, client: Optional[SecClient] = None, num_quarters: int = 8)
         quarterly_series[key] = series
         ttm_series[key] = _ttm(series, sorted(series.keys()))
 
+    # Step 4: Determine which periods to report on
     # The periods we report on: most recent N balance-sheet period-ends.
     all_ends = _quarter_end_universe(company_facts)
     report_ends = all_ends[-num_quarters:] if num_quarters else all_ends
 
+    # eg: all_ends = ["2021-12-31", "2022-03-31", "2022-06-30", ..., "2024-09-30"]
+    # num_quarters=8 get recent 8
+    # report_ends = ["2022-12-31", "2023-03-31", ..., "2024-09-30"]
+
+
+    # Step 5: Build PeriodInputs for each period
     periods: list[PeriodInputs] = []
     for end in report_ends:
+        # 5a: Instant concepts (balance sheet items at this date)
         instant = {key: _resolve_instant(company_facts, CONCEPTS[key], end) for key in INSTANT_CONCEPTS}
+
+        # 5b: Quarterly duration concepts (income/cash flow for this single quarter)
         quarterly = {key: quarterly_series[key].get(end, ResolvedValue(None, [], [], "none"))
                      for key in DURATION_CONCEPTS}
+        # 5c: TTM duration concepts (sum of last 4 quarters)
         ttm = {key: ttm_series[key].get(end, ResolvedValue(None, [], [], "none"))
                for key in DURATION_CONCEPTS}
+
+        # 5d: Which filing provided this period's data?
         form_type, filing_date = _period_filing(company_facts, end)
         periods.append(PeriodInputs(period_end=end, form_type=form_type, filing_date=filing_date,
                                     instant=instant, quarterly=quarterly, ttm=ttm))
+
+    '''PeriodInputs(
+        period_end="2023-09-30",           # when
+        form_type="10-Q",                  # which file
+        filing_date="2023-11-09",          # when to submit
+        instant={
+            "cash": ResolvedValue(value=29.9B),
+            "long_term_debt": ResolvedValue(value=95.1B),
+            "assets": ResolvedValue(value=352B),
+            # ... all instant def
+        },
+        quarterly={
+            "operating_income": ResolvedValue(value=22.3B),  # singal seasonal
+            "revenue": ResolvedValue(value=89.5B),
+            # ... all period def (single seasonal)
+        },
+        ttm={
+            "operating_income": ResolvedValue(value=100.2B),  # past 4 season
+            "dep_amort": ResolvedValue(value=11.5B),
+            # ... all period def
+        }
+        )'''
 
     return ExtractionResult(metadata=meta, periods=periods)
 
