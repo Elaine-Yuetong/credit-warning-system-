@@ -102,6 +102,45 @@ CREATE TABLE IF NOT EXISTS alerts (
     created_at      TEXT,
     FOREIGN KEY (cik) REFERENCES issuers(cik)
 );
+
+-- LLM-extracted footnote terms (Phase 3). One row per (cik, accession, form_type);
+-- flattened from llm_extractor.DebtFootnoteExtraction. Read by metrics.py to replace
+-- the Phase-2 covenant proxy, current-portion maturity, and revolver-excluded liquidity.
+CREATE TABLE IF NOT EXISTS llm_extractions (
+    id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+    cik                         TEXT NOT NULL,
+    accession                   TEXT,
+    form_type                   TEXT,
+    extracted_at                TEXT NOT NULL,
+    model_used                  TEXT,
+    -- Compliance
+    in_compliance               INTEGER,     -- 1/0/null
+    breach_disclosed            INTEGER,
+    going_concern_doubt         INTEGER,
+    chapter_11_filed            INTEGER,
+    compliance_evidence         TEXT,
+    -- Covenant headroom (flattened from first leverage + coverage covenant)
+    leverage_covenant_threshold REAL,
+    leverage_covenant_direction TEXT,
+    coverage_covenant_threshold REAL,
+    coverage_covenant_direction TEXT,
+    covenant_springing          INTEGER,
+    -- Maturity schedule (Year 1-5 + Thereafter, USD millions)
+    maturity_year1              REAL,
+    maturity_year2              REAL,
+    maturity_year3              REAL,
+    maturity_year4              REAL,
+    maturity_year5              REAL,
+    maturity_thereafter         REAL,
+    -- Revolver
+    revolver_commitment         REAL,
+    revolver_drawn              REAL,
+    revolver_net_available      REAL,
+    revolver_maturity_date      TEXT,
+    -- Raw JSON for anything not flattened
+    raw_json                    TEXT,
+    UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
+);
 """
 
 

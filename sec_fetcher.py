@@ -1,0 +1,365 @@
+"""
+sec_fetcher.py — filing text fetcher for the (future) LLM extraction layer.
+
+Step 1 of the LLM layer: locate and return the cleaned text of a company's Debt Footnote
+from its most recent 10-K / 10-Q. This is the unstructured source for covenant thresholds,
+maturity schedules, breach/waiver language, and revolver availability — none of which are
+in XBRL (see spec/COVENANT_HEADROOM.md "Where it lives" and spec/DEBT_MATURITY_WALL.md
+"Where it lives": the Debt Footnote is typically Note 5–9, titled "Debt", "Long-Term Debt",
+"Borrowings", or "Credit Facilities").
+
+This module does NO LLM calls — it only fetches and locates text ready for an LLM. It
+reuses the SecClient from extractor.py for SEC-compliant rate limiting, backoff, and caching.
+
+Pipeline:
+  1. recent_filings()        — read submissions JSON (cached) → most recent 10-K / 10-Q ref
+  2. filing_document_url()   — build the Archives URL for the primary document
+  3. SecClient.get_text()    — fetch the filing HTML (cached)
+  4. html_to_text()          — strip tags/entities to readable text
+  5. locate_debt_footnote()  — find the Debt Footnote section by heading + keyword density
+"""
+
+from __future__ import annotations
+
+import html as _html
+import re
+import sys
+from dataclasses import dataclass, field
+from typing import Optional
+
+from extractor import SecClient, pad_cik
+
+# Long cache TTL: filing HTML is immutable once accepted by EDGAR.
+FILING_CACHE_TTL_S = 365 * 24 * 60 * 60
+
+# Debt-footnote heading variants (spec: Note 5–9, "Debt"/"Long-Term Debt"/"Borrowings"/
+# "Credit Facilities"/"Credit Agreement"). Ordered most-specific → least, lower-cased.
+_HEADING_PATTERNS = [
+    r"debt and credit facilities",
+    r"long[\s\-]term debt and other borrowings",
+    r"notes payable and long[\s\-]term debt",
+    r"long[\s\-]term debt",
+    r"credit facilities",
+    r"credit agreement",
+    r"notes payable",
+    r"indebtedness",
+    r"\bborrowings\b",
+    r"\bdebt\b",
+]
+
+# Signal terms that distinguish the actual Debt Footnote from a passing mention in MD&A or
+# the balance sheet. Density of these in the following window scores each candidate heading.
+_SIGNAL_TERMS = [
+    "covenant", "revolving", "senior notes", "maturit", "interest rate",
+    "credit agreement", "term loan", "indenture", "waiver", "in compliance",
+    "principal", "aggregate", "due 20", "borrowings", "secured", "unsecured",
+]
+
+_WINDOW = 30_000                                   # max chars to capture for the debt footnote
+_SHORT_WINDOW = 10_000                              # going-concern / subsequent-events are shorter
+_NOTE_BOUNDARY = re.compile(r"\bnote\s+\d{1,2}\b", re.I)   # next-note heading = section end
+
+# Going-concern note headings (spec: covenant breach / waiver expiry language lives here).
+_GOING_CONCERN_HEADINGS = [
+    r"going concern",
+    r"substantial doubt",
+    r"ability to continue",
+]
+# Subsequent-events note headings (post-period-end waivers, defaults, Chapter 11 filings).
+_SUBSEQUENT_EVENTS_HEADINGS = [
+    r"subsequent events",
+    r"events after",
+    r"events subsequent",
+]
+# Distress vocabulary for scoring the going-concern / subsequent-events windows. Same
+# keyword-density scoring as the debt footnote, but tuned to breach/waiver/restructuring
+# language rather than instrument detail.
+_DISTRESS_SIGNAL_TERMS = [
+    "going concern", "substantial doubt", "waiver", "default", "covenant",
+    "forbearance", "chapter 11", "bankruptcy", "maturit", "credit agreement",
+    "refinanc", "liquidity", "amend", "restructur", "cross-default", "expire",
+]
+
+
+@dataclass
+class FilingRef:
+    form: str
+    accession: str
+    primary_document: str
+    filing_date: Optional[str]
+    report_date: Optional[str]
+
+
+@dataclass
+class DebtFootnote:
+    cik: str
+    form: str
+    accession: str
+    source_url: str
+    found: bool
+    # form_type mirrors `form` (10-K / 10-Q); kept so save_to_db() can read source.form_type.
+    # Placed here (first defaulted field) because a dataclass requires defaulted fields to
+    # follow the required ones above — it cannot sit immediately after `form`.
+    form_type: str = ""
+    heading: Optional[str] = None
+    char_start: Optional[int] = None
+    char_end: Optional[int] = None
+    text: str = ""
+    full_text_len: int = 0
+    signal_hits: dict = field(default_factory=dict)
+    # Additional notes that often carry waiver / breach / restructuring language the 30k
+    # debt window can miss. The LLM (Step 2) reads debt + going-concern + subsequent.
+    going_concern_text: str = ""
+    subsequent_events_text: str = ""
+
+
+# --------------------------------------------------------------------------------------
+# 1. Discover filings from the submissions JSON
+# --------------------------------------------------------------------------------------
+
+def recent_filings(client: SecClient, cik: str,
+                   forms: tuple[str, ...] = ("10-K", "10-Q")) -> dict[str, FilingRef]:
+    """Return the most recent filing of each requested form for a CIK.
+
+    Reads the submissions JSON (cached by extractor as {cik}_submissions.json). The
+    `filings.recent` arrays are parallel and ordered most-recent-first, so the first match
+    per form is the latest. Amended forms (10-K/A) are normalised to their base form.
+    """
+    cik10 = pad_cik(cik)
+    url = f"https://data.sec.gov/submissions/CIK{cik10}.json"
+    data = client.get_json(url, cache_name=f"{cik10}_submissions.json")
+    recent = (data or {}).get("filings", {}).get("recent", {})
+    accns = recent.get("accessionNumber") or []
+    forms_arr = recent.get("form") or []
+    docs = recent.get("primaryDocument") or []
+    filed = recent.get("filingDate") or []
+    reported = recent.get("reportDate") or []
+
+    out: dict[str, FilingRef] = {}
+    for i in range(len(accns)):
+        base_form = (forms_arr[i] if i < len(forms_arr) else "").replace("/A", "")
+        if base_form not in forms or base_form in out:
+            continue
+        out[base_form] = FilingRef(
+            form=base_form,
+            accession=accns[i],
+            primary_document=docs[i] if i < len(docs) else "",
+            filing_date=filed[i] if i < len(filed) else None,
+            report_date=reported[i] if i < len(reported) else None,
+        )
+        if len(out) == len(forms):
+            break
+    return out
+
+
+# --------------------------------------------------------------------------------------
+# 2. Build the document URL
+# --------------------------------------------------------------------------------------
+
+def filing_document_url(cik: str, ref: FilingRef) -> str:
+    """Construct the EDGAR Archives URL for a filing's primary document.
+
+    Path form: /Archives/edgar/data/{cik-no-leading-zeros}/{accession-no-dashes}/{document}.
+    Note: the folder uses the accession with dashes *removed* (EDGAR convention).
+    """
+    cik_int = str(int(pad_cik(cik)))                 # strip leading zeros
+    acc_nodash = ref.accession.replace("-", "")
+    return f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_nodash}/{ref.primary_document}"
+
+
+# --------------------------------------------------------------------------------------
+# 3 + 4. Fetch + clean HTML
+# --------------------------------------------------------------------------------------
+
+def html_to_text(raw: str) -> str:
+    """Reduce filing HTML (incl. inline XBRL) to readable text.
+
+    Block-level closers become newlines first so section headings survive on their own
+    lines; remaining tags are stripped, HTML entities decoded, and whitespace collapsed.
+    """
+    s = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", raw)
+    # Preserve structure: block-level boundaries -> newline.
+    s = re.sub(r"(?i)<(?:/p|/div|/tr|/h[1-6]|/li|br\s*/?|/table)\s*>", "\n", s)
+    s = re.sub(r"(?s)<[^>]+>", " ", s)               # strip all remaining tags
+    s = _html.unescape(s)
+    s = s.replace("\xa0", " ")
+    s = re.sub(r"[ \t]+", " ", s)
+    s = re.sub(r"\n[ \t]*\n+", "\n\n", s)
+    return s.strip()
+
+
+def fetch_filing_text(client: SecClient, cik: str, ref: FilingRef) -> tuple[str, str]:
+    """Fetch a filing's primary document and return (cleaned_text, source_url).
+    Returns ("", url) if the document could not be fetched."""
+    url = filing_document_url(cik, ref)
+    cik10 = pad_cik(cik)
+    cache_name = f"{cik10}_{ref.accession.replace('-', '')}.html"
+    raw = client.get_text(url, cache_name=cache_name, ttl_s=FILING_CACHE_TTL_S)
+    if not raw:
+        return "", url
+    return html_to_text(raw), url
+
+
+# --------------------------------------------------------------------------------------
+# 5. Locate the Debt Footnote
+# --------------------------------------------------------------------------------------
+
+def _candidate_positions(low: str, patterns: list[str]) -> list[tuple[int, str]]:
+    """All heading-phrase positions for `patterns`, de-duplicated to one per ~1000 chars."""
+    raw: list[tuple[int, str]] = []
+    for pat in patterns:
+        for m in re.finditer(pat, low):
+            raw.append((m.start(), m.group()))
+    raw.sort()
+    deduped: list[tuple[int, str]] = []
+    for pos, phrase in raw:
+        if deduped and pos - deduped[-1][0] < 1000:
+            continue
+        deduped.append((pos, phrase))
+    return deduped
+
+
+def _locate_section(text: str, headings: list[str], signal_terms: list[str],
+                    window: int, min_distinct: int = 3) -> tuple[bool, Optional[str], int, int, dict]:
+    """Generic footnote locator: pick the heading candidate whose following `window` has the
+    highest density of `signal_terms`, with a heading-position bonus, trimmed at the next
+    "Note N" boundary. Shared by all three locators. Returns
+    (found, heading, char_start, char_end, signal_hits)."""
+    low = text.lower()
+    best_score = -1
+    best: Optional[tuple[int, str, int, dict]] = None  # (start, phrase, end, hits)
+
+    for pos, phrase in _candidate_positions(low, headings):
+        win = low[pos:pos + window]
+        hits = {term: win.count(term) for term in signal_terms}
+        distinct = sum(1 for c in hits.values() if c > 0)
+        score = sum(min(c, 5) for c in hits.values())   # cap each term's contribution
+        # Require genuine signal; a bare passing mention won't qualify.
+        if distinct < min_distinct:
+            continue
+        # Heading bonus: a real footnote title sits at the start of a short line, not
+        # mid-sentence. Reward that and back the start up to the heading line.
+        line_start = low.rfind("\n", 0, pos) + 1
+        heading_like = len(low[line_start:pos].strip()) <= 60
+        if heading_like:
+            score += 8
+        start = line_start if heading_like else pos
+        # Tie-break toward later positions (footnotes sit after MD&A).
+        if score > best_score or (score == best_score and best and start > best[0]):
+            boundary = _NOTE_BOUNDARY.search(low, pos + 2000)
+            end = min(boundary.start(), pos + window) if boundary else min(pos + window, len(text))
+            best = (start, phrase, end, {k: v for k, v in hits.items() if v})
+            best_score = score
+
+    if best is None:
+        return False, None, 0, 0, {}
+    start, phrase, end, hits = best
+    return True, phrase, start, end, hits
+
+
+def locate_debt_footnote(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Debt Footnote (Note 5–9) by debt-keyword density. 30k-char window."""
+    return _locate_section(text, _HEADING_PATTERNS, _SIGNAL_TERMS, _WINDOW, min_distinct=3)
+
+
+def locate_going_concern_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the going-concern note (waiver/breach/restructuring language). 10k window.
+    min_distinct=2 — these notes are short and a single breach event may carry few terms."""
+    return _locate_section(text, _GOING_CONCERN_HEADINGS, _DISTRESS_SIGNAL_TERMS,
+                           _SHORT_WINDOW, min_distinct=2)
+
+
+def locate_subsequent_events_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the subsequent-events note (post-period-end waivers, defaults, Chapter 11). 10k."""
+    return _locate_section(text, _SUBSEQUENT_EVENTS_HEADINGS, _DISTRESS_SIGNAL_TERMS,
+                           _SHORT_WINDOW, min_distinct=2)
+
+
+# --------------------------------------------------------------------------------------
+# Orchestration
+# --------------------------------------------------------------------------------------
+
+def get_debt_footnote(client: SecClient, cik: str, form: str = "10-K") -> Optional[DebtFootnote]:
+    """Fetch the most recent `form` filing for `cik` and return its Debt Footnote text.
+
+    Returns None if the filing cannot be located/fetched. Returns a DebtFootnote with
+    found=False (and empty text) if the document was fetched but no debt section matched.
+    """
+    cik10 = pad_cik(cik)
+    refs = recent_filings(client, cik, (form,))
+    ref = refs.get(form)
+    if ref is None or not ref.primary_document:
+        return None
+
+    text, url = fetch_filing_text(client, cik, ref)
+    if not text:
+        return DebtFootnote(cik10, form, ref.accession, url, found=False, form_type=form)
+
+    found, heading, start, end, hits = locate_debt_footnote(text)
+    gc_found, _gc_h, gc_s, gc_e, _gc_hits = locate_going_concern_note(text)
+    se_found, _se_h, se_s, se_e, _se_hits = locate_subsequent_events_note(text)
+    return DebtFootnote(
+        cik=cik10, form=form, form_type=form, accession=ref.accession, source_url=url,
+        found=found, heading=heading, char_start=start, char_end=end,
+        text=text[start:end] if found else "",
+        full_text_len=len(text), signal_hits=hits,
+        going_concern_text=text[gc_s:gc_e] if gc_found else "",
+        subsequent_events_text=text[se_s:se_e] if se_found else "",
+    )
+
+
+# --------------------------------------------------------------------------------------
+# Manual test — Rite Aid (covenant breach + waiver disclosures expected)
+# --------------------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    target = sys.argv[1] if len(sys.argv) > 1 else "0000084129"  # Rite Aid
+    client = SecClient()
+
+    print(f"Debt Footnote fetch — CIK {target}\n" + "=" * 78)
+    refs = recent_filings(client, target, ("10-K", "10-Q"))
+    if not refs:
+        print("No 10-K/10-Q found in submissions.")
+        sys.exit(1)
+    for form, ref in refs.items():
+        print(f"  most recent {form}: accession {ref.accession}  filed {ref.filing_date}  "
+              f"doc {ref.primary_document}")
+
+    for form in ("10-K", "10-Q"):
+        if form not in refs:
+            continue
+        print("\n" + "=" * 78)
+        print(f"  {form}")
+        print("=" * 78)
+        fn = get_debt_footnote(client, target, form)
+        if fn is None:
+            print("  could not locate/fetch filing")
+            continue
+        print(f"  source: {fn.source_url}")
+        print(f"  full cleaned text length: {fn.full_text_len:,} chars")
+        print(f"  debt footnote found: {fn.found}")
+        if not fn.found:
+            print("  (no debt section matched heading + keyword-density test)")
+            continue
+        print(f"  heading matched: {fn.heading!r}   chars [{fn.char_start:,}–{fn.char_end:,}]  "
+              f"({fn.char_end - fn.char_start:,} chars extracted)")
+        print(f"  signal hits: {fn.signal_hits}")
+        print(f"  going-concern note: {len(fn.going_concern_text):,} chars   "
+              f"subsequent-events note: {len(fn.subsequent_events_text):,} chars")
+
+        # Combined text the LLM (Step 2) will receive.
+        combined = (fn.text + "\n\n" + fn.going_concern_text + "\n\n"
+                    + fn.subsequent_events_text).lower()
+        print("  breach/waiver keyword presence across combined text "
+              "(debt + going-concern + subsequent):")
+        for kw in ("covenant", "waiver", "not in compliance", "in compliance",
+                   "event of default", "expire", "forbearance", "chapter 11",
+                   "going concern", "substantial doubt"):
+            print(f"    {'✓' if kw in combined else '·'} {kw!r}")
+
+        if fn.going_concern_text:
+            print("\n  --- first 1200 chars of GOING-CONCERN note ---")
+            print("  " + fn.going_concern_text[:1200].replace("\n", "\n  "))
+        if fn.subsequent_events_text:
+            print("\n  --- first 1000 chars of SUBSEQUENT-EVENTS note ---")
+            print("  " + fn.subsequent_events_text[:1000].replace("\n", "\n  "))

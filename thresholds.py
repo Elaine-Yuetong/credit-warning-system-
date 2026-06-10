@@ -23,6 +23,10 @@ from metrics import MetricResult
 # Alert level ordering for "take the more severe" logic.
 _LEVELS = {None: 0, "Watch": 1, "Flag": 2, "Stress": 3, "Critical": 4}
 
+# Near-term liquidity strength (cash + STI vs near-term debt) above which a sub-1.0
+# current ratio is treated as working-capital structure, not solvency stress.
+STRONG_NEARTERM_LIQUIDITY = 1.5
+
 
 def _escalate(current: Optional[str], floor: Optional[str]) -> Optional[str]:
     return current if _LEVELS[current] >= _LEVELS[floor] else floor
@@ -195,13 +199,24 @@ def _coverage_alert(m: MetricResult, prior: Optional[MetricResult], vol: str) ->
     return level
 
 
-def _current_alert(m: MetricResult, liquidity_sector: str) -> Optional[str]:
+def _current_alert(m: MetricResult, liquidity_sector: str, strong_liquidity: bool = False) -> Optional[str]:
     if m.value is None:
         return None
     bands = _CURRENT_BANDS
     if liquidity_sector == "utility":
         bands = [(c - 0.2, lvl) for c, lvl in _CURRENT_BANDS]  # utilities -0.2x (§ Dimension 1)
         m.flags.append("utility sector — current ratio thresholds adjusted -0.2x")
+    elif strong_liquidity:
+        # Cash-rich / low-working-capital firms (Apple, etc.) run current ratios just
+        # below 1.0 by design — operating liabilities (payables, deferred revenue), not
+        # debt, drive the shortfall. When cash + short-term investments cover near-term
+        # DEBT >= 1.5x, a sub-1.0 current ratio is not solvency stress, so shift the bands
+        # down 0.2x. LIQUIDITY.md endorses cross-referencing Available Liquidity Coverage
+        # before escalating liquidity alerts. A genuine cash collapse (Rite Aid 0.02x
+        # coverage) fails this gate and keeps the unadjusted, stricter bands.
+        bands = [(c - 0.2, lvl) for c, lvl in _CURRENT_BANDS]
+        m.flags.append("strong near-term liquidity (cash+STI cover near-term debt >=1.5x) — "
+                       "current ratio thresholds adjusted -0.2x; sub-1.0 ratio not auto-Stress")
     return _band_descending(m.value, bands)
 
 
@@ -361,7 +376,11 @@ def _maturity_alert(m: MetricResult) -> Optional[str]:
 
 
 def _covenant_proxy_alert(m: MetricResult) -> Optional[str]:
-    """Phase-2 proxy: Flag when the underlying ratio crosses the leveraged-finance level."""
+    """Covenant headroom alert. Honors the LLM-computed level (real thresholds + compliance
+    overrides) when present; otherwise the Phase-2 proxy (Flag when the ratio crosses the
+    leveraged-finance level)."""
+    if "llm_alert" in m.extra:
+        return m.extra["llm_alert"]
     if m.extra.get("breached"):
         return "Flag"
     return None
@@ -377,6 +396,13 @@ def assign_alerts(metrics: list[MetricResult], cls: Classification) -> None:
     for m in metrics:
         by_metric.setdefault(m.metric_name, []).append(m)
 
+    # Per-period near-term liquidity strength (cash+STI vs near-term debt), used to relax
+    # the current-ratio bands for cash-rich firms (see _current_alert).
+    strong_liq_by_period = {
+        m.period_end: (m.value is not None and m.value >= STRONG_NEARTERM_LIQUIDITY)
+        for m in by_metric.get("maturity_coverage_near_term", [])
+    }
+
     for name, series in by_metric.items():
         series.sort(key=lambda x: x.period_end)
         for i, m in enumerate(series):
@@ -390,7 +416,8 @@ def assign_alerts(metrics: list[MetricResult], cls: Classification) -> None:
             elif name == "interest_coverage":
                 m.alert_level = _coverage_alert(m, prior, cls.volatility_cat)
             elif name == "current_ratio":
-                m.alert_level = _current_alert(m, cls.liquidity_sector)
+                m.alert_level = _current_alert(m, cls.liquidity_sector,
+                                               strong_liq_by_period.get(m.period_end, False))
             elif name == "quick_ratio":
                 m.alert_level = _quick_alert(m, cls.liquidity_sector)
             elif name == "free_cash_flow":

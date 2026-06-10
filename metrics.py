@@ -130,6 +130,25 @@ def _total_debt(p: PeriodInputs) -> tuple[Optional[float], dict, list[str], str]
 
     # Level 1 requires Component C.
     if c_val is not None:
+        # ── ADDED: LongTermDebt double-count protection ───────────────────────
+        # LongTermDebt (unlike LongTermDebtNoncurrent) is ambiguous in XBRL —
+        # many companies use it to mean total long-term debt including the current
+        # portion already captured in Component B. Subtract b_val to avoid
+        # double-counting. Only applies when the exact tag "LongTermDebt" was used;
+        # does NOT apply to LongTermDebtNoncurrent or
+        # LongTermDebtAndCapitalLeaseObligationsNoncurrent.
+        c_tags = c.tags if c is not None else []
+        if "LongTermDebt" in c_tags:
+            b_subtract = b_val if b_val is not None else 0.0
+            if b_subtract > 0:
+                original_c = c_val
+                c_val = c_val - b_subtract
+                flags.append(
+                    f"LongTermDebt tag used (raw={original_c:,.0f}) — current LTD "
+                    f"({b_subtract:,.0f}) subtracted to avoid double-count; "
+                    f"adjusted non-current LT debt = {c_val:,.0f}"
+                )
+        # ── END ADDED ─────────────────────────────────────────────────────────
         total = (a_val or 0.0) + (b_val or 0.0) + c_val
         if a is not None and a.tags:
             src["short_term_debt"] = ",".join(a.tags)
@@ -197,6 +216,31 @@ def _ebitda_ttm(p: PeriodInputs) -> tuple[Optional[float], dict, list[str]]:
     da = p.ttm.get("dep_amort")
     src: dict[str, str] = {}
     flags: list[str] = []
+    # ── D&A fallback: Depreciation + AmortizationOfIntangibleAssets ──────────
+    if _v(da) is None:
+        dep = p.ttm.get("depreciation_only")
+        amort = p.ttm.get("amortization_intangibles")
+        dep_val = _v(dep)
+        amort_val = _v(amort)
+        if dep_val is not None:
+            derived_da = dep_val + (amort_val or 0.0)
+            derived_tags = _tags(dep) + (_tags(amort) if amort_val is not None else [])
+            derived_flags = [
+                "D&A derived from Depreciation + AmortizationOfIntangibleAssets — may be partial"
+            ]
+            if amort_val is None:
+                derived_flags.append(
+                    "AmortizationOfIntangibleAssets absent — D&A is depreciation-only; EBITDA may be understated"
+                )
+            # Wrap as a ResolvedValue-like object for consistent downstream handling
+            from extractor import ResolvedValue
+            da = ResolvedValue(
+                value=derived_da,
+                tags=derived_tags,
+                flags=derived_flags,
+                path="derived",
+            )
+    # ── END D&A fallback ──────────────────────────────────────────────────────
     if _v(oi) is None or _v(da) is None:
         missing = "operating income" if _v(oi) is None else "D&A"
         return None, src, [f"TTM EBITDA null — {missing} unavailable (insufficient quarters or tag absent)"]
@@ -210,8 +254,24 @@ def _ebitda_ttm(p: PeriodInputs) -> tuple[Optional[float], dict, list[str]]:
 
 
 def _ebitda_quarterly(p: PeriodInputs) -> Optional[float]:
+    """Single-quarter EBITDA = Operating Income + D&A.
+
+    D&A fallback (spec LEVERAGE.md line 201 Fallback 2): if dep_amort quarterly is null,
+    attempt to derive D&A from Depreciation + AmortizationOfIntangibleAssets.
+    """
     oi = _v(p.quarterly.get("operating_income"))
-    da = _v(p.quarterly.get("dep_amort"))
+
+    da_rv = p.quarterly.get("dep_amort")
+    da = _v(da_rv)
+
+    # ── D&A fallback: Depreciation + AmortizationOfIntangibleAssets ──────────
+    if da is None:
+        dep_val = _v(p.quarterly.get("depreciation_only"))
+        amort_val = _v(p.quarterly.get("amortization_intangibles"))
+        if dep_val is not None:
+            da = dep_val + (amort_val or 0.0)
+    # ── END D&A fallback ──────────────────────────────────────────────────────
+
     if oi is None or da is None:
         return None
     return oi + da
@@ -244,6 +304,61 @@ def _leverage(p: PeriodInputs) -> MetricResult:
     return MetricResult(**base, value=value, flags=flags, audit_log=audit, extra=extra,
                         extraction_path="ttm")
 
+
+
+# ── LOCATION: metrics.py, inside _interest_coverage(), lines 258–262 ────────
+#
+# CURRENT CODE (Phase 2 — correct as-is):
+#
+#     # Explicit net-interest netting detection (no silent net substitution).
+#     if not has_interest_tag and has_net_tag:
+#         flags.append("net interest only — LLM required per spec")
+#         return MetricResult(**base, value=None, flags=flags,
+#                             audit_log={"reason": "net_interest_only"}, extraction_path="none")
+#
+# REPLACE the comment block above with this comment-enhanced version:
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+    # Explicit net-interest netting detection (no silent net substitution).
+    # Phase 2: when InterestExpense tag is absent but InterestIncomeExpenseNet is
+    # present, we cannot isolate gross interest expense from structured data alone.
+    # Return null + flag immediately. This is correct Phase 2 behaviour.
+    #
+    # ── PHASE 3 TODO: net interest reconstruction ─────────────────────────────
+    # When this condition fires, Phase 3 should attempt reconstruction before
+    # returning null. The spec defines this in INTEREST_COVERAGE.md →
+    # Section "Extraction Fallback Logic" → Input 2 (Interest Expense), Steps 3–4:
+    #
+    # Step 3 — If InterestIncomeExpenseNet is negative (net expense):
+    #   Attempt reconstruction:
+    #     gross_interest = abs(InterestIncomeExpenseNet)
+    #                    + (InterestIncomeOperating or InvestmentIncomeInterest or 0)
+    #   Flag: "interest expense reconstructed from net interest plus interest income;
+    #          gross figure approximate — verify against interest footnote"
+    #   Proceed with reconstructed gross_interest if reconstruction succeeds.
+    #
+    # Step 4 — If InterestIncomeExpenseNet is positive (net income > expense):
+    #   Company earns more interest than it pays. Coverage ratio is not meaningful.
+    #   Return null + flag: "net interest income (not expense) — coverage not applicable"
+    #
+    # Step 5 — If reconstruction fails (interest income tags also absent):
+    #   Return null as Phase 2 does now.
+    #   Flag: "net interest only — gross reconstruction failed; LLM required per spec"
+    #
+    # New concepts needed in extractor.py for Phase 3:
+    #   "interest_income_operating": Concept(..., ("InterestIncomeOperating",))
+    #   "interest_income_investment": Concept(..., ("InvestmentIncomeInterest",))
+    # Both are duration concepts. Fetch alongside interest_net in the CONCEPTS dict.
+    #
+    # Implied rate sanity check (also Phase 3, INTEREST_COVERAGE.md §Extraction):
+    #   After any interest expense is resolved (gross or reconstructed):
+    #   implied_rate = gross_interest / total_debt
+    #   If implied_rate < 0.01 (< 1%) or > 0.20 (> 20%) for non-distressed issuers:
+    #   Flag: "implied interest rate {implied_rate:.1%} appears anomalous —
+    #          verify interest expense extraction is gross and covers all obligations"
+    #   This catches silent netting errors and missing debt components simultaneously.
+    # ── END PHASE 3 TODO ──────────────────────────────────────────────────────
+    # if not has_interest-tag and has net_tag this line before
 
 def _interest_coverage(p: PeriodInputs, has_interest_tag: bool, has_net_tag: bool) -> MetricResult:
     ebitda, ebsrc, ebflags = _ebitda_ttm(p)
@@ -541,41 +656,147 @@ def _revenue_yoy(p: PeriodInputs, prior_year: Optional[PeriodInputs]) -> MetricR
                         audit_log={"revenue": rev, "prior_year_revenue": prior_rev}, extraction_path="derived")
 
 
-def _maturity_coverage(p: PeriodInputs) -> MetricResult:
+def _load_llm_extraction(cik: str) -> Optional[dict]:
+    """Most recent llm_extractions row for an issuer (Phase-3 footnote terms), or None.
+
+    Returns None if the table doesn't exist yet or has no row for this CIK — callers then
+    fall back to the Phase-2 proxy / current-portion behaviour. Read-only; no I/O on the
+    pure metric functions beyond this single lookup per issuer.
+    """
+    import sqlite3
+    try:
+        from db import DB_PATH
+    except Exception:
+        DB_PATH = "credit_warning.db"
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM llm_extractions WHERE cik = ? ORDER BY extracted_at DESC LIMIT 1",
+            (cik,),
+        ).fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except sqlite3.OperationalError:
+        return None  # table not created yet
+
+
+def _maturity_coverage(p: PeriodInputs, llm: Optional[dict] = None) -> MetricResult:
     cur_ltd = _v(p.instant.get("current_ltd"))
     st = _v(p.instant.get("short_term_debt"))
     cash = _v(p.instant.get("cash"))
     sti = _v(p.instant.get("short_term_investments")) or 0.0
     base = dict(metric_name="maturity_coverage_near_term", period_end=p.period_end,
                 form_type=p.form_type, filing_date=p.filing_date, value_unit="ratio")
-    flags = ["revolver excluded — Phase 2; available liquidity may be understated"]
+    flags: list[str] = []
 
-    near_term = (cur_ltd or 0.0) + (st or 0.0)
-    if cur_ltd is None:
-        flags.append("current portion of LT debt not found — near-term maturity may be understated")
+    # Near-term maturity: prefer the LLM Year-1 full schedule (captures bullet maturities not
+    # yet reclassified to the balance-sheet current portion) over the XBRL current portion.
+    near_term_from_llm = llm is not None and llm.get("maturity_year1") is not None
+    if near_term_from_llm:
+        near_term = float(llm["maturity_year1"]) * 1e6  # schedule is in USD millions
+        flags.append("near-term maturity from LLM Year 1 schedule (full bullet maturities)")
+    else:
+        near_term = (cur_ltd or 0.0) + (st or 0.0)
+        if cur_ltd is None:
+            flags.append("current portion of LT debt not found — near-term maturity may be understated")
+
     if near_term == 0:
         return MetricResult(**base, value=None, flags=flags + ["no near-term maturities identified"],
                             extraction_path="none")
     if cash is None:
         return MetricResult(**base, value=None, flags=flags + ["cash unavailable"], extraction_path="none")
+
+    # Available liquidity: cash + STI, plus the revolver's undrawn capacity when the LLM
+    # extraction provides it (replaces the Phase-2 "revolver excluded" understatement).
     avail = cash + sti
-    return MetricResult(**base, value=avail / near_term, flags=flags,
+    revolver_added = False
+    if llm is not None and llm.get("revolver_net_available") is not None:
+        avail += float(llm["revolver_net_available"]) * 1e6
+        flags.append("revolver included from LLM extraction")
+        revolver_added = True
+    else:
+        flags.append("revolver excluded — not available; available liquidity may be understated")
+
+    path = "llm" if (near_term_from_llm or revolver_added) else "primary"
+    return MetricResult(**base, value=avail / near_term, flags=flags, extraction_path=path,
                         audit_log={"available_liquidity": avail, "near_term_maturity": near_term,
-                                   "cash": cash, "short_term_investments": sti})
+                                   "cash": cash, "short_term_investments": sti,
+                                   "revolver_net_available": (llm or {}).get("revolver_net_available")})
 
 
-def _covenant_proxies(leverage: MetricResult, coverage: MetricResult, p: PeriodInputs) -> list[MetricResult]:
-    """Phase-2 proxy: no covenant threshold is XBRL-extractable, so flag when the leverage
-    or coverage ratio crosses the leveraged-finance proxy levels (>5.5x, <2.0x) (§ COVENANT_HEADROOM)."""
+def _covenant_headroom(leverage: MetricResult, coverage: MetricResult, p: PeriodInputs,
+                       llm: Optional[dict] = None) -> list[MetricResult]:
+    """Covenant headroom. With an LLM extraction (real covenant thresholds + compliance
+    status), compute actual headroom and apply compliance overrides. Without one, fall back
+    to the Phase-2 leveraged-finance proxy (leverage > 5.5x, coverage < 2.0x)."""
     base = dict(period_end=p.period_end, form_type=p.form_type, filing_date=p.filing_date, value_unit="ratio")
-    proxy_note = "Phase 2 proxy — covenant threshold not XBRL-extractable (Phase 3 LLM); leveraged-finance proxy level"
 
-    lev = MetricResult(metric_name="covenant_headroom_leverage", value=leverage.value,
-                       flags=[proxy_note], extraction_path="derived",
-                       extra={"breached": (leverage.value is not None and leverage.value > 5.5)}, **base)
-    cov = MetricResult(metric_name="covenant_headroom_coverage", value=coverage.value,
-                       flags=[proxy_note], extraction_path="derived",
-                       extra={"breached": (coverage.value is not None and coverage.value < 2.0)}, **base)
+    # ---- Fallback: Phase-2 proxy (unchanged) ----
+    if llm is None:
+        proxy_note = ("Phase 2 proxy — no LLM covenant extraction; leveraged-finance proxy level")
+        lev = MetricResult(metric_name="covenant_headroom_leverage", value=leverage.value,
+                           flags=[proxy_note], extraction_path="derived",
+                           extra={"breached": (leverage.value is not None and leverage.value > 5.5)}, **base)
+        cov = MetricResult(metric_name="covenant_headroom_coverage", value=coverage.value,
+                           flags=[proxy_note], extraction_path="derived",
+                           extra={"breached": (coverage.value is not None and coverage.value < 2.0)}, **base)
+        return [lev, cov]
+
+    # ---- LLM path: real thresholds + compliance overrides ----
+    # Compliance-level overrides apply to both covenant metrics.
+    override, override_flag = None, None
+    if llm.get("breach_disclosed") or llm.get("chapter_11_filed"):
+        override = "Critical"
+        override_flag = "covenant breach / Chapter 11 disclosed (LLM extraction)"
+    elif llm.get("going_concern_doubt"):
+        override = "Stress"
+        override_flag = "going-concern doubt disclosed (LLM extraction)"
+
+    def headroom_alert(h: Optional[float]) -> Optional[str]:
+        if h is None:
+            return None
+        if h < 0:
+            return "Critical"          # already in breach
+        if h < 0.10:
+            return "Stress"
+        if h < 0.20:
+            return "Flag"              # <15-20% headroom is a negative factor (S&P)
+        if h < 0.30:
+            return "Watch"
+        return None
+
+    # Leverage covenant is a maximum: headroom = (threshold - current) / threshold.
+    lev_thr = llm.get("leverage_covenant_threshold")
+    lev_val = leverage.value
+    lev_head, lev_flags = None, []
+    if lev_thr and lev_val is not None:
+        lev_head = (lev_thr - lev_val) / lev_thr
+        lev_flags.append(f"covenant max leverage {lev_thr}x (LLM); current {lev_val:.2f}x; "
+                         f"headroom {lev_head * 100:.0f}%")
+    elif override is None:
+        lev_flags.append("no leverage covenant threshold extracted")
+    if override_flag:
+        lev_flags.append(override_flag)
+    lev = MetricResult(metric_name="covenant_headroom_leverage", value=lev_head, flags=lev_flags,
+                       extraction_path="llm", extra={"llm_alert": override or headroom_alert(lev_head)},
+                       audit_log={"covenant_threshold": lev_thr, "current_leverage": lev_val}, **base)
+
+    # Coverage covenant is a minimum: headroom = (current - threshold) / threshold.
+    cov_thr = llm.get("coverage_covenant_threshold")
+    cov_val = coverage.value
+    cov_head, cov_flags = None, []
+    if cov_thr and cov_val is not None:
+        cov_head = (cov_val - cov_thr) / cov_thr
+        cov_flags.append(f"covenant min coverage {cov_thr}x (LLM); current {cov_val:.2f}x; "
+                         f"headroom {cov_head * 100:.0f}%")
+    elif override is None:
+        cov_flags.append("no coverage covenant threshold extracted")
+    if override_flag:
+        cov_flags.append(override_flag)
+    cov = MetricResult(metric_name="covenant_headroom_coverage", value=cov_head, flags=cov_flags,
+                       extraction_path="llm", extra={"llm_alert": override or headroom_alert(cov_head)},
+                       audit_log={"covenant_threshold": cov_thr, "current_coverage": cov_val}, **base)
     return [lev, cov]
 
 
@@ -659,6 +880,9 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
     has_interest_tag = _issuer_has_concept(result, "interest_expense")
     has_net_tag = _issuer_has_concept(result, "interest_net")
     periods = result.periods
+    # Phase-3 LLM footnote terms (covenant thresholds, maturity schedule, revolver), loaded
+    # once per issuer. None when no extraction has been persisted -> proxy/current-portion fallback.
+    llm = _load_llm_extraction(result.metadata.cik)
 
     out: list[MetricResult] = []
     for i, p in enumerate(periods):
@@ -675,8 +899,8 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
         out.append(_revenue_yoy(p, prior_year))
         out.append(_debt_to_equity(p))
         out.extend(_asset_coverage(p))
-        out.append(_maturity_coverage(p))
-        out.extend(_covenant_proxies(leverage, coverage, p))
+        out.append(_maturity_coverage(p, llm))
+        out.extend(_covenant_headroom(leverage, coverage, p, llm))
         out.append(_loss_provisions(p))
 
     if institution_type == "financial":

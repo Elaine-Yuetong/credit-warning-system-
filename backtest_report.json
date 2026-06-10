@@ -1,0 +1,1983 @@
+{
+  "distressed": [
+    {
+      "name": "Rite Aid",
+      "cik": "0000084129",
+      "event_date": "2023-10-15",
+      "resolved_name": "NEW RITE AID, LLC",
+      "status": "caught",
+      "first_stress_date": "2020-10-15",
+      "lead_days": 1095,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "debt_to_equity",
+        "interest_coverage",
+        "leverage",
+        "ocf_ebitda_conversion"
+      ],
+      "single_metric_first_date": "2020-10-15",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2020-10-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 7,
+          "latest_period": "2020-08-29"
+        },
+        {
+          "as_of": "2021-01-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 5,
+          "latest_period": "2020-11-28"
+        },
+        {
+          "as_of": "2021-04-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 5,
+          "latest_period": "2020-11-28"
+        },
+        {
+          "as_of": "2021-07-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-05-29"
+        },
+        {
+          "as_of": "2021-10-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-08-28"
+        },
+        {
+          "as_of": "2022-01-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-11-27"
+        },
+        {
+          "as_of": "2022-04-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-11-27"
+        },
+        {
+          "as_of": "2022-07-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-05-28"
+        },
+        {
+          "as_of": "2022-10-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-08-27"
+        },
+        {
+          "as_of": "2023-01-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 5,
+          "latest_period": "2022-11-26"
+        },
+        {
+          "as_of": "2023-04-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 5,
+          "latest_period": "2022-11-26"
+        },
+        {
+          "as_of": "2023-07-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-06-03"
+        },
+        {
+          "as_of": "2023-10-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-06-03"
+        }
+      ]
+    },
+    {
+      "name": "Bed Bath & Beyond",
+      "cik": "0000886158",
+      "event_date": "2023-04-23",
+      "resolved_name": "20230930-DK-Butterfly-1, Inc.",
+      "status": "caught",
+      "first_stress_date": "2020-04-23",
+      "lead_days": 1095,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "leverage",
+        "revenue_yoy_growth"
+      ],
+      "single_metric_first_date": "2020-04-23",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2020-04-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2019-11-30"
+        },
+        {
+          "as_of": "2020-07-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 5,
+          "latest_period": "2020-05-30"
+        },
+        {
+          "as_of": "2020-10-23",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 1,
+          "latest_period": "2020-08-29"
+        },
+        {
+          "as_of": "2021-01-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2020-11-28"
+        },
+        {
+          "as_of": "2021-04-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 1,
+          "latest_period": "2021-02-27"
+        },
+        {
+          "as_of": "2021-07-23",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "ebitda_margin"
+          ],
+          "flag_count": 4,
+          "latest_period": "2021-05-29"
+        },
+        {
+          "as_of": "2021-10-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2021-08-28"
+        },
+        {
+          "as_of": "2022-01-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "free_cash_flow",
+            "leverage",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-11-27"
+        },
+        {
+          "as_of": "2022-04-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2022-02-26"
+        },
+        {
+          "as_of": "2022-07-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-05-28"
+        },
+        {
+          "as_of": "2022-10-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-08-27"
+        },
+        {
+          "as_of": "2023-01-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-08-27"
+        },
+        {
+          "as_of": "2023-04-23",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "free_cash_flow",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2022-11-26"
+        }
+      ]
+    },
+    {
+      "name": "WeWork",
+      "cik": "0001813756",
+      "event_date": "2023-11-06",
+      "resolved_name": "WeWork Inc.",
+      "status": "caught",
+      "first_stress_date": "2021-08-06",
+      "lead_days": 822,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "current_ratio",
+        "quick_ratio"
+      ],
+      "single_metric_first_date": "2021-08-06",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2020-11-06",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2020-06-30"
+        },
+        {
+          "as_of": "2021-02-06",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2020-09-30"
+        },
+        {
+          "as_of": "2021-05-06",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2020-12-31"
+        },
+        {
+          "as_of": "2021-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "quick_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2021-03-31"
+        },
+        {
+          "as_of": "2021-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "quick_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2021-06-30"
+        },
+        {
+          "as_of": "2022-02-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "quick_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2021-09-30"
+        },
+        {
+          "as_of": "2022-05-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "free_cash_flow",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2021-12-31"
+        },
+        {
+          "as_of": "2022-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-03-31"
+        },
+        {
+          "as_of": "2022-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-06-30"
+        },
+        {
+          "as_of": "2023-02-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-09-30"
+        },
+        {
+          "as_of": "2023-05-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2022-12-31"
+        },
+        {
+          "as_of": "2023-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-03-31"
+        },
+        {
+          "as_of": "2023-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "quick_ratio"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-06-30"
+        }
+      ]
+    },
+    {
+      "name": "Revlon",
+      "cik": "0000887921",
+      "event_date": "2022-06-15",
+      "resolved_name": "REVLON INC /DE/",
+      "status": "caught",
+      "first_stress_date": "2019-06-15",
+      "lead_days": 1096,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "asset_coverage",
+        "debt_to_equity",
+        "interest_coverage",
+        "leverage",
+        "maturity_coverage_near_term",
+        "ocf_ebitda_conversion",
+        "revenue_yoy_growth",
+        "tangible_asset_coverage"
+      ],
+      "single_metric_first_date": "2019-06-15",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2019-06-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 14,
+          "latest_period": "2019-03-31"
+        },
+        {
+          "as_of": "2019-09-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "current_ratio",
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 13,
+          "latest_period": "2019-06-30"
+        },
+        {
+          "as_of": "2019-12-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 12,
+          "latest_period": "2019-09-30"
+        },
+        {
+          "as_of": "2020-03-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 8,
+          "latest_period": "2019-12-31"
+        },
+        {
+          "as_of": "2020-06-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 11,
+          "latest_period": "2020-03-31"
+        },
+        {
+          "as_of": "2020-09-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "ebitda_margin",
+            "leverage",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 9,
+          "latest_period": "2020-06-30"
+        },
+        {
+          "as_of": "2020-12-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "current_ratio",
+            "debt_to_equity",
+            "free_cash_flow",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 9,
+          "latest_period": "2020-09-30"
+        },
+        {
+          "as_of": "2021-03-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 6,
+          "latest_period": "2020-12-31"
+        },
+        {
+          "as_of": "2021-06-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 10,
+          "latest_period": "2021-03-31"
+        },
+        {
+          "as_of": "2021-09-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "ocf_ebitda_conversion",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 8,
+          "latest_period": "2021-06-30"
+        },
+        {
+          "as_of": "2021-12-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "free_cash_flow",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 8,
+          "latest_period": "2021-09-30"
+        },
+        {
+          "as_of": "2022-03-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 6,
+          "latest_period": "2021-12-31"
+        },
+        {
+          "as_of": "2022-06-15",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "asset_coverage",
+            "debt_to_equity",
+            "leverage",
+            "tangible_asset_coverage"
+          ],
+          "flag_count": 8,
+          "latest_period": "2022-03-31"
+        }
+      ]
+    },
+    {
+      "name": "Party City",
+      "cik": "0001592058",
+      "event_date": "2023-01-17",
+      "resolved_name": "Party City Holdco Inc.",
+      "status": "caught",
+      "first_stress_date": "2020-01-17",
+      "lead_days": 1096,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "ebitda_margin",
+        "free_cash_flow",
+        "interest_coverage",
+        "leverage",
+        "maturity_coverage_near_term"
+      ],
+      "single_metric_first_date": "2020-01-17",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2020-01-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 10,
+          "latest_period": "2019-09-30"
+        },
+        {
+          "as_of": "2020-04-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2019-12-31"
+        },
+        {
+          "as_of": "2020-07-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 10,
+          "latest_period": "2020-03-31"
+        },
+        {
+          "as_of": "2020-10-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 9,
+          "latest_period": "2020-06-30"
+        },
+        {
+          "as_of": "2021-01-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 10,
+          "latest_period": "2020-09-30"
+        },
+        {
+          "as_of": "2021-04-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2020-12-31"
+        },
+        {
+          "as_of": "2021-07-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-03-31"
+        },
+        {
+          "as_of": "2021-10-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 5,
+          "latest_period": "2021-06-30"
+        },
+        {
+          "as_of": "2022-01-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 11,
+          "latest_period": "2021-09-30"
+        },
+        {
+          "as_of": "2022-04-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 8,
+          "latest_period": "2021-12-31"
+        },
+        {
+          "as_of": "2022-07-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio"
+          ],
+          "flag_count": 10,
+          "latest_period": "2022-03-31"
+        },
+        {
+          "as_of": "2022-10-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio"
+          ],
+          "flag_count": 8,
+          "latest_period": "2022-06-30"
+        },
+        {
+          "as_of": "2023-01-17",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity",
+            "ebitda_margin",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "maturity_coverage_near_term",
+            "quick_ratio"
+          ],
+          "flag_count": 9,
+          "latest_period": "2022-09-30"
+        }
+      ]
+    },
+    {
+      "name": "Yellow Corp",
+      "cik": "0000716006",
+      "event_date": "2023-08-06",
+      "resolved_name": "Yellow Corp",
+      "status": "caught",
+      "first_stress_date": "2020-08-06",
+      "lead_days": 1095,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "debt_to_equity",
+        "interest_coverage",
+        "revenue_yoy_growth"
+      ],
+      "single_metric_first_date": "2020-08-06",
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2020-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 4,
+          "latest_period": "2020-06-30"
+        },
+        {
+          "as_of": "2020-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2020-09-30"
+        },
+        {
+          "as_of": "2021-02-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "ocf_ebitda_conversion",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2020-09-30"
+        },
+        {
+          "as_of": "2021-05-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage",
+            "ocf_ebitda_conversion"
+          ],
+          "flag_count": 8,
+          "latest_period": "2021-03-31"
+        },
+        {
+          "as_of": "2021-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-06-30"
+        },
+        {
+          "as_of": "2021-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage",
+            "leverage"
+          ],
+          "flag_count": 7,
+          "latest_period": "2021-09-30"
+        },
+        {
+          "as_of": "2022-02-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage"
+          ],
+          "flag_count": 6,
+          "latest_period": "2021-12-31"
+        },
+        {
+          "as_of": "2022-05-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "free_cash_flow",
+            "interest_coverage"
+          ],
+          "flag_count": 6,
+          "latest_period": "2021-12-31"
+        },
+        {
+          "as_of": "2022-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity"
+          ],
+          "flag_count": 2,
+          "latest_period": "2022-06-30"
+        },
+        {
+          "as_of": "2022-11-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity"
+          ],
+          "flag_count": 3,
+          "latest_period": "2022-09-30"
+        },
+        {
+          "as_of": "2023-02-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity"
+          ],
+          "flag_count": 3,
+          "latest_period": "2022-09-30"
+        },
+        {
+          "as_of": "2023-05-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2023-03-31"
+        },
+        {
+          "as_of": "2023-08-06",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "debt_to_equity",
+            "interest_coverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2023-03-31"
+        }
+      ]
+    }
+  ],
+  "healthy": [
+    {
+      "name": "Apple",
+      "cik": "0000320193",
+      "event_date": null,
+      "resolved_name": "Apple Inc.",
+      "status": "clean",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Stress",
+      "peak_stress_metrics": [
+        "revenue_yoy_growth"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [],
+      "single_metric_fp_dates": [
+        "2023-12-10"
+      ],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 4,
+          "latest_period": "2023-04-01"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 4,
+          "latest_period": "2023-07-01"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2023-09-30"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-12-30"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-03-30"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-06-29"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-09-28"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-12-28"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2025-03-29"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2025-06-28"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2025-09-27"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2025-12-27"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2026-03-28"
+        }
+      ]
+    },
+    {
+      "name": "Microsoft",
+      "cik": "0000789019",
+      "event_date": null,
+      "resolved_name": "MICROSOFT CORP",
+      "status": "clean",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Flag",
+      "peak_stress_metrics": [],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-03-31"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-06-30"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-09-30"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-12-31"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2024-03-31"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2024-06-30"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2024-09-30"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2024-12-31"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-03-31"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-06-30"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2025-09-30"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-12-31"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2026-03-31"
+        }
+      ]
+    },
+    {
+      "name": "Johnson & Johnson",
+      "cik": "0000200406",
+      "event_date": null,
+      "resolved_name": "JOHNSON & JOHNSON",
+      "status": "clean",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Stress",
+      "peak_stress_metrics": [
+        "ebitda_margin"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [],
+      "single_metric_fp_dates": [
+        "2023-06-10"
+      ],
+      "note": "FY OperatingIncomeLoss gap \u2014 leverage/coverage path may be null (known limitation)",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "ebitda_margin"
+          ],
+          "flag_count": 4,
+          "latest_period": "2023-04-02"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2023-07-02"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2023-10-01"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-12-31"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-03-31"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-06-30"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-09-29"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2024-12-29"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2025-03-30"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2025-06-29"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-09-28"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2025-12-28"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2026-03-29"
+        }
+      ]
+    },
+    {
+      "name": "Waste Management",
+      "cik": "0000823768",
+      "event_date": null,
+      "resolved_name": "WASTE MANAGEMENT INC",
+      "status": "annotated",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Stress",
+      "peak_stress_metrics": [
+        "current_ratio",
+        "debt_to_equity"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [
+        "2025-03-10"
+      ],
+      "single_metric_fp_dates": [
+        "2025-03-10",
+        "2025-06-10"
+      ],
+      "note": "acquisition-driven D/E event \u2014 Stericycle acquisition 2023; single leveraging transaction, not credit deterioration",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2023-03-31"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2023-06-30"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2023-09-30"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2023-12-31"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-03-31"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2024-06-30"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-09-30"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "current_ratio",
+            "debt_to_equity"
+          ],
+          "flag_count": 5,
+          "latest_period": "2024-12-31"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "debt_to_equity"
+          ],
+          "flag_count": 3,
+          "latest_period": "2025-03-31"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2025-06-30"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2025-09-30"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2025-12-31"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2026-03-31"
+        }
+      ]
+    },
+    {
+      "name": "Procter & Gamble",
+      "cik": "0000080424",
+      "event_date": null,
+      "resolved_name": "PROCTER & GAMBLE Co",
+      "status": "clean",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "current_ratio"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [],
+      "single_metric_fp_dates": [
+        "2023-06-10",
+        "2023-09-10",
+        "2023-12-10",
+        "2024-03-10",
+        "2024-06-10",
+        "2024-09-10",
+        "2024-12-10",
+        "2025-03-10",
+        "2025-06-10",
+        "2025-09-10",
+        "2025-12-10",
+        "2026-03-10",
+        "2026-06-10"
+      ],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 4,
+          "latest_period": "2023-03-31"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 5,
+          "latest_period": "2023-06-30"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2023-09-30"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 4,
+          "latest_period": "2023-12-31"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2024-03-31"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2024-06-30"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2024-09-30"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2024-12-31"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2025-03-31"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2025-06-30"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2025-09-30"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 2,
+          "latest_period": "2025-12-31"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio"
+          ],
+          "flag_count": 1,
+          "latest_period": "2026-03-31"
+        }
+      ]
+    },
+    {
+      "name": "Costco",
+      "cik": "0000909832",
+      "event_date": null,
+      "resolved_name": "COSTCO WHOLESALE CORP /NEW",
+      "status": "clean",
+      "first_stress_date": null,
+      "lead_days": null,
+      "peak_level": "Flag",
+      "peak_stress_metrics": [],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": null,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "",
+      "timeline": [
+        {
+          "as_of": "2023-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2023-05-07"
+        },
+        {
+          "as_of": "2023-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2023-05-07"
+        },
+        {
+          "as_of": "2023-12-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-09-03"
+        },
+        {
+          "as_of": "2024-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2023-11-26"
+        },
+        {
+          "as_of": "2024-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-05-12"
+        },
+        {
+          "as_of": "2024-09-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-05-12"
+        },
+        {
+          "as_of": "2024-12-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-09-01"
+        },
+        {
+          "as_of": "2025-03-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2024-11-24"
+        },
+        {
+          "as_of": "2025-06-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-05-11"
+        },
+        {
+          "as_of": "2025-09-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-05-11"
+        },
+        {
+          "as_of": "2025-12-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-08-31"
+        },
+        {
+          "as_of": "2026-03-10",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-11-23"
+        },
+        {
+          "as_of": "2026-06-10",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2026-05-10"
+        }
+      ]
+    }
+  ]
+}

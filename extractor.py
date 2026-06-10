@@ -214,6 +214,18 @@ CONCEPTS: dict[str, Concept] = {
          "DepreciationAndAmortization", "Depreciation"),
         flag_tags={"Depreciation": "D&A may be partial (depreciation only) — verify completeness"},
     ),
+    # D&A derivation sub-components — used only when dep_amort resolves to null.
+    # Depreciation alone is already in dep_amort as the last-resort single tag,
+    # but AmortizationOfIntangibleAssets must be fetched separately to sum with it.
+    # Both are extracted here so metrics.py can sum them without hitting the network.
+    "depreciation_only": Concept(
+        "depreciation_only", "duration", "first",
+        ("Depreciation",),
+    ),
+    "amortization_intangibles": Concept(
+        "amortization_intangibles", "duration", "first",
+        ("AmortizationOfIntangibleAssets",),
+    ),
     "interest_expense": Concept(
         "interest_expense", "duration", "first",
         ("InterestExpense", "InterestAndDebtExpense"),
@@ -339,6 +351,59 @@ class SecClient:
             self._write_cache(cache_name, data)
             return data
 
+        return None
+
+    # -- text (HTML) cache + fetch ------------------------------------------------------
+    def _read_text_cache(self, name: str, ttl_s: float) -> Optional[str]:
+        path = self._cache_path(name)
+        try:
+            age = time.time() - os.path.getmtime(path)
+        except OSError:
+            return None
+        if age > ttl_s:
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                return fh.read()
+        except OSError:
+            return None
+
+    def _write_text_cache(self, name: str, text: str) -> None:
+        try:
+            with open(self._cache_path(name), "w", encoding="utf-8") as fh:
+                fh.write(text)
+        except OSError:
+            pass  # caching is best-effort
+
+    def get_text(self, url: str, cache_name: str, ttl_s: float = CACHE_TTL_S) -> Optional[str]:
+        """Fetch raw text (e.g. filing HTML) — same rate limiting, backoff, and caching
+        as get_json. Returns the body, or None on 404 / exhausted retries. Filing HTML is
+        historical and immutable, so a long TTL is appropriate (default 24 h is fine; the
+        caller may pass a longer TTL for archived filings)."""
+        cached = self._read_text_cache(cache_name, ttl_s)
+        if cached is not None:
+            return cached
+
+        for attempt in range(MAX_RETRIES + 1):
+            self._throttle()
+            try:
+                resp = self.session.get(url, timeout=REQUEST_TIMEOUT_S,
+                                        headers={"Accept": "text/html,application/xhtml+xml,*/*"})
+            except (requests.Timeout, requests.ConnectionError):
+                if not self._backoff(attempt):
+                    return None
+                continue
+            if resp.status_code == 404:
+                return None
+            if resp.status_code in (429, 403) or resp.status_code >= 500:
+                if not self._backoff(attempt):
+                    return None
+                continue
+            if not resp.ok:
+                return None
+            body = resp.text
+            self._write_text_cache(cache_name, body)
+            return body
         return None
 
     @staticmethod
@@ -822,6 +887,31 @@ def _quarter_end_universe(company_facts: dict) -> list[str]:
     return sorted(ends)
 
 
+def _filter_company_facts_as_of(company_facts: dict, as_of: str) -> dict:
+    """Return a companyfacts copy containing only facts filed on or before `as_of`.
+
+    This is the single point-in-time gate for backtesting (Phase 3): by dropping every
+    fact whose `filed` date is after the simulated date — and any fact with no `filed`
+    date (cannot prove it was known) — the rest of the period engine produces exactly the
+    view an analyst could have seen on `as_of`, with no look-ahead from later restatements.
+    `as_of` is an ISO date ("YYYY-MM-DD"); ISO strings compare correctly lexicographically.
+    """
+    usgaap = (company_facts.get("facts", {}) or {}).get("us-gaap", {}) or {}
+    new_usgaap: dict = {}
+    for tag, node in usgaap.items():
+        units = (node or {}).get("units") or {}
+        new_units: dict = {}
+        for unit_key, entries in units.items():
+            kept = [e for e in (entries or []) if e.get("filed") and e["filed"] <= as_of]
+            if kept:
+                new_units[unit_key] = kept
+        if new_units:
+            new_usgaap[tag] = {"units": new_units}
+    out = {k: v for k, v in company_facts.items() if k != "facts"}
+    out["facts"] = {"us-gaap": new_usgaap}
+    return out
+
+
 def _period_filing(company_facts: dict, end: str) -> tuple[Optional[str], Optional[str]]:
     """Identify the source filing (form_type, filing_date) for a balance-sheet period-end.
 
@@ -837,13 +927,19 @@ def _period_filing(company_facts: dict, end: str) -> tuple[Optional[str], Option
     return None, None
 
 
-def extract(cik: str, client: Optional[SecClient] = None, num_quarters: int = 8) -> Optional[ExtractionResult]:
+def extract(cik: str, client: Optional[SecClient] = None, num_quarters: int = 8,
+            as_of: Optional[str] = None) -> Optional[ExtractionResult]:
     """Full extraction for one CIK.
 
     Returns per-period input dictionaries for the most recent `num_quarters` balance-sheet
     period-ends, each carrying instant values, derived single-quarter duration values, and
     TTM duration values. Returns None if the CIK fails onboarding validation or companyfacts
     is unavailable.
+
+    `as_of` (ISO date, optional): point-in-time gate for backtesting. When set, only facts
+    filed on or before this date are used, so the result reflects exactly what was knowable
+    on that date — no look-ahead from later restatements. Default None preserves all
+    existing behaviour (uses the full current snapshot).
     """
     client = client or SecClient()
     # Step 1: Get company metadata (name, SIC, tickers, has_10k)
@@ -855,6 +951,11 @@ def extract(cik: str, client: Optional[SecClient] = None, num_quarters: int = 8)
     company_facts = fetch_company_facts(client, cik)
     if not company_facts:
         return None
+
+    # Step 2b: Point-in-time gate (Phase 3 backtest) — filter at the source, before the
+    # period engine runs, so every downstream computation sees only as-of-date data.
+    if as_of:
+        company_facts = _filter_company_facts_as_of(company_facts, as_of)
 
     # Step 3: Pre-compute quarterly series and TTM for ALL duration concepts
     # Build the full quarterly duration + TTM series once (needs deep history for TTM).
