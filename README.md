@@ -1,8 +1,8 @@
 # Credit Warning System
 
-A Python CLI that monitors corporate bond issuers for credit stress by extracting financial metrics from SEC EDGAR filings and flagging deterioration before it becomes a problem.
+A Python CLI that monitors corporate bond issuers for credit stress by extracting financial metrics from SEC EDGAR filings — combining deterministic XBRL extraction with LLM-powered footnote reading to flag deterioration before it becomes a problem.
 
-Built as a 3-phase internship project. Phases 1 and 2 are complete. Phase 3 (backtest harness) is next.
+Built as a 3-phase internship project. All three phases complete. LLM extraction layer (Groups 1–4) also complete.
 
 ---
 
@@ -12,37 +12,43 @@ Given a company's CIK number, the system:
 
 1. Fetches XBRL-tagged financial data from SEC EDGAR
 2. Computes 16 credit stress metrics across the last 8 quarters
-3. Applies volatility-aware alert thresholds (🔴 Critical / 🟠 Stress / 🟡 Flag / 🔵 Watch / ✅ None)
-4. Stores results in SQLite with full audit trails (which tags were used, which fallbacks fired, why)
-5. Prints a terminal table for quick review
+3. Reads unstructured footnotes via LLM to extract covenant thresholds, maturity schedules, revolver availability, and loss provisions
+4. Applies volatility-aware alert thresholds (🔴 Critical / 🟠 Stress / 🟡 Flag / 🔵 Watch / ✅ None)
+5. Stores results in SQLite with full audit trails (which tags were used, which fallbacks fired, why)
+6. Prints a terminal table for quick review
 
-Every computed value is traceable to its source tag — no black-box numbers.
+Every computed value is traceable to its source — XBRL tag or LLM extraction with verbatim evidence.
 
 ---
 
 ## Quickstart
 
 ```bash
-# Install dependencies (one external library)
+# Install dependencies
 pip install -r requirements.txt
 
-# Run against a single company (by CIK)
+# XBRL extraction only (no API key required)
 python cli.py 0000320193      # Apple — healthy control
 python cli.py 0000019617      # JPMorgan — financial institution
 python cli.py 0000084129      # Rite Aid — distressed anchor
+
+# With LLM footnote extraction (requires Anthropic API key)
+export ANTHROPIC_API_KEY="your-key"
+export ANTHROPIC_BASE_URL="https://api.apiyi.com"   # omit for direct Anthropic API
+python llm_extractor.py 0000084129 10-Q             # extract + persist Rite Aid footnotes
+python llm_extractor.py 0000320193 10-K             # extract + persist Apple footnotes
+python cli.py 0000084129                            # CLI now uses real covenant thresholds
 ```
 
 ---
 
 ## Validation Anchors
 
-Three CIKs serve as validation anchors. Running these confirms the system is working correctly.
-
 | Company | CIK | Expected Output |
 |---|---|---|
-| Apple Inc. | `0000320193` | No alerts. Leverage ~0.3–0.6x. FCF margin ~25–36%. EBITDA margin ~33–37%. Interest coverage null (Apple does not tag InterestExpense separately — correct behaviour). |
-| JPMorgan Chase | `0000019617` | Financial institution suppression. SIC 6021. Leverage, coverage, current/quick ratio all null with suppression flag. FCF computed with financial institution flag. Revenue trend computed normally. |
-| Rite Aid | `0000084129` | 🔴 Critical across leverage (negative EBITDA), interest coverage (−5.1x), current ratio (0.58x), maturity coverage (0.02x). D/E escalating to negative equity. EBITDA margin Critical (consecutive negative quarters). Consistent with October 2023 bankruptcy. |
+| Apple Inc. | `0000320193` | No alerts on core metrics. Leverage ~0.3x. FCF margin ~25–36%. Maturity schedule: Year 1 $12,393M. Loss provisions: Tier 3 matters (patent, antitrust), regulatory investigation flagged. |
+| JPMorgan Chase | `0000019617` | Financial institution suppression (SIC 6021). Leverage, coverage, current/quick ratio all null with suppression flag. |
+| Rite Aid | `0000084129` | 🔴 Critical across leverage (negative EBITDA), interest coverage (−5.12x), current ratio (0.58x). Covenant coverage 🔴 Critical with real 1.0x threshold from LLM. Loss provisions 🔴 Critical ($204.54M accrued, Tier 5 matters, regulatory investigation). Chapter 11 October 2023. |
 
 ---
 
@@ -50,14 +56,18 @@ Three CIKs serve as validation anchors. Running these confirms the system is wor
 
 ```
 credit-warning-system/
-├── extractor.py          # SEC EDGAR HTTP client, XBRL extraction, period engine
-├── metrics.py            # 16 Formula-1 ratio computations
-├── thresholds.py         # Volatility-aware alert tables, SIC classification
-├── db.py                 # SQLite schema (6 tables)
+├── extractor.py          # SEC EDGAR HTTP client, XBRL extraction, YTD/TTM period engine
+├── metrics.py            # 16 Formula-1 ratio computations + LLM metric integration
+├── thresholds.py         # Volatility-aware alert tables, SIC classification, tier alerts
+├── db.py                 # SQLite schema (8 tables including LLM extraction tables)
 ├── cli.py                # Terminal table output, orchestration
+├── sec_fetcher.py        # Filing HTML fetcher, footnote locator (Debt, GC, contingency)
+├── llm_extractor.py      # Anthropic API calls, structured JSON extraction, persistence
+├── backtest.py           # Phase 3 point-in-time backtest harness
 ├── test_manual.py        # Manual function test harness (44 checks)
 ├── test_period_engine.py # Unit tests for YTD subtraction and TTM logic (13 tests)
-├── requirements.txt      # requests>=2.31 (only external dependency)
+├── Makefile              # make test / make backtest / make all (CI entry points)
+├── requirements.txt      # requests>=2.31, anthropic>=0.69, pydantic>=2
 ├── spec/                 # Phase 1 specification (12 metric files + Section 6)
 │   ├── LEVERAGE.md
 │   ├── INTEREST_COVERAGE.md
@@ -79,74 +89,122 @@ credit-warning-system/
 
 ## The 16 Metrics
 
-All are Formula 1 (deterministic XBRL extraction). Formula 2 and 3 (LLM footnote extraction) are Phase 3.
-
-| Metric | `metric_name` | Alert basis | Phase 2 scope |
+| Metric | `metric_name` | Alert basis | LLM enhancement |
 |---|---|---|---|
-| Leverage | `leverage` | TTM Net Debt / EBITDA vs volatility tables | Full |
-| Interest Coverage | `interest_coverage` | TTM EBITDA / Interest Expense | Full; net interest → null + flag |
-| Free Cash Flow | `free_cash_flow` | Quarterly OCF − Capex (millions) | Full |
-| FCF Margin | `fcf_margin` | FCF / Revenue % | Full |
-| OCF/EBITDA Conversion | `ocf_ebitda_conversion` | OCF / EBITDA ratio | Full |
-| Current Ratio | `current_ratio` | Current Assets / Current Liabilities | Full; no revolver |
-| Quick Ratio | `quick_ratio` | (Current Assets − Inventory − Prepaid) / CL | Full; retail/mfg adjusted |
-| Debt-to-Equity | `debt_to_equity` | Total Debt / Shareholders' Equity | Full; sector-grouped thresholds |
-| EBITDA Margin | `ebitda_margin` | EBITDA / Revenue % trend | Full; no sector benchmark (Phase 3) |
-| Revenue YoY Growth | `revenue_yoy_growth` | YoY quarterly revenue growth | Full; no sector context (Phase 3) |
-| Asset Coverage | `asset_coverage` | Total Assets / Total Debt | F1 book value only |
-| Tangible Asset Coverage | `tangible_asset_coverage` | (Assets − GW − Intangibles − DTA) / Debt | F1 only |
-| Near-Term Maturity Coverage | `maturity_coverage_near_term` | (Cash + STI) / Current Debt Maturities | Current portion only; no full schedule |
-| Covenant Headroom (Leverage) | `covenant_headroom_leverage` | Proxy: flag when leverage > 5.5x | Phase 3 will extract actual thresholds |
-| Covenant Headroom (Coverage) | `covenant_headroom_coverage` | Proxy: flag when coverage < 2.0x | Phase 3 will extract actual thresholds |
-| Loss Provisions | `loss_provisions_balance` | XBRL balance sheet tag attempt | Phase 3 for footnote extraction |
+| Leverage | `leverage` | TTM Net Debt / EBITDA vs volatility tables | — |
+| Interest Coverage | `interest_coverage` | TTM EBITDA / Interest Expense | Net interest → null + flag |
+| Free Cash Flow | `free_cash_flow` | Quarterly OCF − Capex (millions) | — |
+| FCF Margin | `fcf_margin` | FCF / Revenue % | — |
+| OCF/EBITDA Conversion | `ocf_ebitda_conversion` | OCF / EBITDA ratio | — |
+| Current Ratio | `current_ratio` | Current Assets / Current Liabilities | — |
+| Quick Ratio | `quick_ratio` | (Current Assets − Inventory − Prepaid) / CL | — |
+| Debt-to-Equity | `debt_to_equity` | Total Debt / Shareholders' Equity | — |
+| EBITDA Margin | `ebitda_margin` | EBITDA / Revenue % trend | — |
+| Revenue YoY Growth | `revenue_yoy_growth` | YoY quarterly revenue growth | — |
+| Asset Coverage | `asset_coverage` | Total Assets / Total Debt | — |
+| Tangible Asset Coverage | `tangible_asset_coverage` | (Assets − GW − Intangibles − DTA) / Debt | — |
+| Near-Term Maturity Coverage | `maturity_coverage_near_term` | (Cash + STI + Revolver) / Year 1 Maturities | ✅ Full maturity schedule + revolver from Debt Footnote |
+| Covenant Headroom (Leverage) | `covenant_headroom_leverage` | Real threshold headroom; breach/Chapter 11 override | ✅ Actual covenant threshold from Debt Footnote |
+| Covenant Headroom (Coverage) | `covenant_headroom_coverage` | Real threshold headroom; going-concern override | ✅ Actual covenant threshold from Debt Footnote |
+| Loss Provisions | `loss_provisions_balance` | Tier-based alert (Tier 1–5 per ASC 450) | ✅ Per-matter tier classification from Contingency Footnote |
+
+---
+
+## LLM Extraction Layer
+
+The LLM layer reads unstructured footnote text from SEC filings that cannot be sourced from XBRL. It uses `sec_fetcher.py` to locate and extract the relevant footnote sections, then calls the Anthropic API via `llm_extractor.py` to produce structured JSON output.
+
+### What is extracted
+
+| Group | Source | Extracted fields |
+|---|---|---|
+| **1 — Covenant thresholds** | Debt Footnote + Credit Agreement | Leverage/coverage thresholds, springing mechanics, step-down schedule, maintenance vs incurrence |
+| **2 — Maturity schedule** | Debt Footnote | Year 1–5 + Thereafter principal amounts; instrument-level dates aggregated by fiscal year |
+| **3 — Revolving credit facility** | Debt Footnote | Commitment, drawn, letters of credit, net available, maturity date, springing maturity flag |
+| **4 — Loss provisions** | Contingency Footnote + Item 3 | Per-matter ASC 450 tier (1–5), accrued amounts, maximum exposure, roll-forward, regulatory investigation flag |
+
+### Compliance and breach detection
+
+The LLM reads the Going-Concern note and Subsequent Events footnote alongside the Debt Footnote. This captures:
+- Covenant breach disclosures → automatic 🔴 Critical on covenant headroom
+- Chapter 11 / default events → automatic 🔴 Critical on covenant headroom
+- Going-concern doubt → automatic 🟠 Stress on covenant headroom
+
+### Loss provisions tier classification
+
+Per LOSS_PROVISIONS.md (severity rises with tier number):
+
+| Tier | ASC 450 Language | Alert Level |
+|---|---|---|
+| 1 | Remote — no financial impact expected | ✅ None |
+| 2 | Reasonably possible, quantified range disclosed | 🔵 Watch |
+| 3 | Reasonably possible, no range given but potentially material | 🟡 Flag |
+| 4 | Probable, amount not yet estimable | 🟠 Stress |
+| 5 | Probable, amount estimable — provision recorded | 🔴 Critical |
+| — | Regulatory investigation disclosed | 🟠 Stress (minimum) |
+
+### Relay compatibility
+
+The LLM layer works with APIYI and other Claude API relay services. Set `ANTHROPIC_BASE_URL` to route through a relay. The `thinking` parameter is intentionally omitted for relay compatibility.
+
+---
+
+## Phase 3 — Backtest Results
+
+The backtest rewinds each issuer to historical quarterly dates and scores using **only data filed on or before that date** — no look-ahead from later restatements. The distress signal is **≥2 non-suppressed metrics at Stress+ on the same date**.
+
+```
+SCORECARD: 6/6 distressed caught ≥2 quarters early · catch rate 100% · FP rate 17% · median lead 36mo
+TARGETS:   catch ≥80% ✅ · FP ≤20% ✅ · median lead ≥2Q ✅
+RESULT: ✅ PASS
+```
+
+**Distressed cases (6/6 caught):** Rite Aid, Bed Bath & Beyond, WeWork, Revlon, Party City, Yellow Corp — all flagged 27–36 months before bankruptcy, peak alert Critical.
+
+**Healthy controls (6):** Apple, Microsoft, J&J, P&G, Costco stay clean. Waste Management flagged ⚠️ ANNOTATED — D/E spike from Stericycle acquisition (one-off leveraging event, not credit deterioration).
 
 ---
 
 ## Key Design Decisions
 
-**Period handling:** SEC EDGAR XBRL reports duration items (income statement, cash flow) as either quarter-only or year-to-date. The system detects which by measuring the span between `start` and `end` dates and subtracts prior cumulative values to derive standalone quarterly figures: Q2 = H1 − Q1, Q3 = 9M − H1, Q4 = FY − 9M. Trailing twelve months (TTM) = sum of 4 most recent quarterly values. This is the most important correctness property of the extraction layer.
+**Period handling:** XBRL duration items are reported as either quarter-only or year-to-date. The system detects which by measuring the span between `start` and `end` dates and subtracts prior cumulative values: Q2 = H1 − Q1, Q3 = 9M − H1, Q4 = FY − 9M. TTM = sum of 4 trailing quarterly values.
 
-**Volatility-aware thresholds:** Leverage and coverage thresholds use three separate tables (Standard / Medial / Low volatility) derived from S&P's financial risk profile methodology. Volatility category is assigned at onboarding from SIC code. The Formula 1 thresholds are offset +0.5x / −0.5x from the published S&P tables to account for the absence of EBITDA addbacks in Phase 2.
+**Volatility-aware thresholds:** Leverage and coverage use three separate tables (Standard / Medial / Low volatility) derived from S&P's financial risk profile methodology, assigned at onboarding from SIC code. Formula 1 thresholds are offset ±0.5x to account for the absence of EBITDA addbacks.
 
-**Fallback chains:** Every metric has a prioritised list of XBRL tags. When the primary tag is absent, the system tries fallbacks in order, records which tag was actually used, and attaches flags for anything that might affect interpretation (e.g. lease contamination, restricted cash bundling, gross inventory). Missing inputs never silently produce wrong ratios — they propagate as null with a flag.
+**Fallback chains:** Every metric has a prioritised XBRL tag list. Missing inputs never silently produce wrong ratios — they propagate as null with a flag. Every row stores `source_tags`, `flags`, `audit_log`, and `extraction_path`.
 
-**Financial institution suppression:** Issuers with SIC 6000–6499 are automatically classified as financial institutions. Leverage, coverage, current/quick ratio, EBITDA margin, and OCF/EBITDA conversion are suppressed (null + flag). FCF, revenue trend, D/E, asset coverage, maturity coverage, and loss provisions are computed with a financial institution flag appended.
+**Financial institution suppression:** SIC 6000–6499 suppresses leverage, coverage, current/quick ratio, EBITDA margin, and OCF/EBITDA conversion with flags. FCF and revenue trend computed with a financial institution flag.
 
-**Audit trail:** Every row in `metric_values` stores `source_tags` (which XBRL tags were used), `flags` (JSON array of extraction warnings), `audit_log` (full computation inputs), and `extraction_path` (primary / fallback / derived_quarterly / ttm / none).
+**LLM anti-hallucination:** Every LLM extraction requires a verbatim quote from the filing for each extracted value. Null when absent — the model is instructed never to infer or estimate values not explicitly stated.
 
 ---
 
 ## How It Differs from the Reference Repo
 
-The mentor's reference repo ([Khootz/Credit_Warning](https://github.com/Khootz/Credit_Warning)) is a TypeScript/Next.js + Prisma/Postgres full-stack web application. This implementation is a Python/SQLite CLI. The two systems share the same data source (SEC EDGAR companyfacts API) and general approach, but differ on:
+The mentor's reference repo ([Khootz/Credit_Warning](https://github.com/Khootz/Credit_Warning)) is a TypeScript/Next.js + Prisma/Postgres full-stack web application. This implementation is a Python/SQLite CLI with an LLM extraction layer.
 
 | Area | Reference repo | This implementation |
 |---|---|---|
-| Language / stack | TypeScript, Next.js, Supabase | Python, SQLite, stdlib |
-| Period handling | No YTD subtraction; uses fp labels | YTD → quarterly subtraction by span detection |
-| TTM | Single quarter EBITDA (not TTM) | TTM = sum of 4 trailing quarters |
-| Thresholds | Single universal fixed cutoffs | Volatility-aware tables (Standard/Medial/Low) per S&P methodology |
+| Language / stack | TypeScript, Next.js, Supabase | Python, SQLite, Anthropic SDK |
+| Period handling | No YTD subtraction | YTD → quarterly subtraction by span detection |
+| TTM | Single quarter EBITDA | TTM = sum of 4 trailing quarters |
+| Thresholds | Single universal cutoffs | Volatility-aware tables (Standard/Medial/Low) |
 | Current/Quick ratio | Not implemented | Fully implemented with sector adjustments |
-| Financial institution suppression | SVB hard-excluded | Systematic SIC 6000–6499 suppression with per-metric rules |
-| Net interest detection | Not implemented | Null + flag when only net interest tag available |
+| LLM extraction | Full-stack with LLM pipeline | Footnote-level: covenant, maturity, revolver, loss provisions |
+| Loss provisions | Not implemented | ASC 450 tier classification (Tier 1–5) with per-matter detail |
+| Covenant thresholds | Not implemented | Real thresholds from Debt Footnote; breach/going-concern overrides |
 | Audit trail | Limited | Full source_tags, flags, audit_log, extraction_path per row |
-| Metrics | 5 partial | 16 Formula-1 metrics |
 
 ---
 
-## Deferred to Phase 3 (LLM Layer)
+## Known Limitations
 
-The following are explicitly out of scope for Phase 2 and documented with `# PHASE 3 TODO` comments in the code:
-
-- Full debt maturity schedule (Year 1–5 + Thereafter) from Debt Footnote — currently only current portion from balance sheet
-- Revolving credit facility availability from Debt Footnote — excluded from Available Liquidity Coverage
-- Actual covenant thresholds from credit agreements — currently using proxy alerts
-- Covenant EBITDA addback definitions — currently using GAAP EBITDA
-- Loss provisions footnote roll-forward and language classification (probable / reasonably possible / remote)
-- Net interest expense reconstruction from `InterestIncomeExpenseNet` + interest income tags
-- Sector benchmark comparisons for EBITDA margin and revenue trend
-- Liquidation haircut-adjusted asset coverage (Formula 2)
-- Implied interest rate sanity check
+- **LLM extractions are point-in-time for the most recent filing only** and are applied uniformly across all displayed quarters. Historical per-quarter LLM extraction is a future enhancement.
+- **Net interest reconstruction** (when only `InterestIncomeExpenseNet` is available) is not implemented — flagged as null + "LLM required per spec."
+- **Asset Coverage Formula 2** (liquidation haircut-adjusted) requires PP&E and inventory composition from footnotes — not yet implemented.
+- **Covenant EBITDA addbacks** (management-defined adjustments from credit agreements) are not extracted — GAAP EBITDA is used as a conservative proxy.
+- **Sector benchmarks** for EBITDA margin and revenue trend require external data — not yet wired.
+- **Backtest case library** contains 6 distressed and 6 healthy issuers — sufficient for baseline calibration but not for statistically robust threshold validation. Expanding to 20+ cases is planned after the full LLM layer is implemented.
 
 ---
 
@@ -154,26 +212,26 @@ The following are explicitly out of scope for Phase 2 and documented with `# PHA
 
 | Phase | Status | Deliverable |
 |---|---|---|
-| 1 — Understand and spec | ✅ Complete | 12 metric spec files + Section 6 implementation parameters (`spec/`) |
-| 2 — MVP extraction | ✅ Complete | Python CLI, 16 metrics, SQLite, validated against 3 anchors, 57 unit tests |
-| 3 — Backtest | 🔲 Next | Point-in-time backtest harness; catch rate + lead time measurement against known distressed cases |
+| 1 — Understand and spec | ✅ Complete | 12 metric spec files + Section 6 (`spec/`) |
+| 2 — MVP extraction | ✅ Complete | 16 metrics, SQLite, CLI, 57 unit tests, 3 validated anchors |
+| 3 — Backtest | ✅ Complete | Point-in-time harness — 6/6 caught, 17% FP, 36mo lead, ✅ PASS |
+| LLM layer (Groups 1–4) | ✅ Complete | Covenant thresholds, maturity schedule, revolver, loss provisions |
+| LLM layer (Groups 5–8) | 🔲 Future | Net interest reconstruction, asset coverage haircuts, FCF adjustments, segment revenue |
 
 ---
 
 ## Running the Tests
 
 ```bash
-# Unit tests for the period engine (13 tests — highest-risk logic)
-python test_period_engine.py
-
-# Manual function test harness (44 checks — all major functions)
-python test_manual.py
+make test        # unit tests (period engine 13) + manual harness (44 checks)
+make backtest    # point-in-time backtest — exits 0 on PASS
+make all         # test + backtest (CI entry point)
 ```
-
-Both should print all PASS with zero failures.
 
 ---
 
 ## Data Source
 
-All data from [SEC EDGAR XBRL API](https://www.sec.gov/developer). No API key required. Rate limit: 10 requests/second. The system targets 6–7 requests/second with a 150ms minimum interval and exponential backoff (base 2s, max 60s, 5 retries) on 429/403/5xx responses. Responses are cached to `cache/` with 24h TTL for recent data and permanent cache for historical filings (> 90 days old).
+All structured data from [SEC EDGAR XBRL API](https://www.sec.gov/developer). No API key required. Rate limit: 10 req/s — system targets 6–7 req/s with 150ms minimum interval and exponential backoff. Responses cached with 24h TTL for recent data, permanent cache for historical filings.
+
+LLM extraction uses the [Anthropic Messages API](https://docs.anthropic.com/en/api/messages). Requires `ANTHROPIC_API_KEY`. Compatible with relay services via `ANTHROPIC_BASE_URL`.
