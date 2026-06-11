@@ -27,6 +27,7 @@ produces audited numeric values.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -370,11 +371,45 @@ def _interest_coverage(p: PeriodInputs, has_interest_tag: bool, has_net_tag: boo
     base = dict(metric_name="interest_coverage", period_end=p.period_end, form_type=p.form_type,
                 filing_date=p.filing_date, value_unit="ratio", source_tags=src)
 
-    # Explicit net-interest netting detection (no silent net substitution).
+    # Net-interest reconstruction (INTEREST_COVERAGE.md Input 2, Steps 3-4). Fires ONLY when the
+    # issuer has neither InterestExpense nor InterestAndDebtExpense tagged but does tag
+    # InterestIncomeExpenseNet — never for companies with a gross interest tag.
     if not has_interest_tag and has_net_tag:
-        flags.append("net interest only — LLM required per spec")
-        return MetricResult(**base, value=None, flags=flags,
-                            audit_log={"reason": "net_interest_only"}, extraction_path="none")
+        net_rv = p.ttm.get("interest_net")
+        net_interest = _v(net_rv)
+        if net_interest is None:
+            flags.append("net interest only — insufficient quarters for TTM reconstruction")
+            return MetricResult(**base, value=None, flags=flags,
+                                audit_log={"reason": "net_interest_no_ttm"}, extraction_path="none")
+        if net_interest < 0:
+            # Net interest EXPENSE presented net -> gross up by adding back BOTH interest income
+            # tags (spec Step 3 sums them; abs(net) + operating + investment).
+            inc_op_rv = p.ttm.get("interest_income_operating")
+            inc_inv_rv = p.ttm.get("interest_income_investment")
+            inc_op, inc_inv = _v(inc_op_rv), _v(inc_inv_rv)
+            gross = abs(net_interest) + (inc_op or 0.0) + (inc_inv or 0.0)
+            if gross > 0:
+                interest = gross  # use reconstructed gross; fall through to normal computation
+                src["interest_net"] = ",".join(net_rv.tags) if net_rv else ""
+                if inc_op is not None and inc_op_rv:
+                    src["interest_income_operating"] = ",".join(inc_op_rv.tags)
+                if inc_inv is not None and inc_inv_rv:
+                    src["interest_income_investment"] = ",".join(inc_inv_rv.tags)
+                flags.append("interest expense reconstructed from InterestIncomeExpenseNet + "
+                             "interest income tags; approximate — verify against interest footnote")
+            else:
+                flags.append("net interest only — reconstruction failed; LLM required")
+                return MetricResult(**base, value=None, flags=flags,
+                                    audit_log={"reason": "reconstruction_failed",
+                                               "net_interest": net_interest}, extraction_path="none")
+        elif net_interest > 0:
+            flags.append("net interest income (not expense) — coverage ratio not applicable")
+            return MetricResult(**base, value=None, flags=flags,
+                                audit_log={"net_interest": net_interest}, extraction_path="none")
+        else:  # net_interest == 0
+            flags.append("net interest zero — coverage ratio not applicable")
+            return MetricResult(**base, value=None, flags=flags,
+                                audit_log={"net_interest": 0}, extraction_path="none")
 
     if interest is None:
         flags.append("interest expense unavailable (tag absent or insufficient quarters for TTM)")
@@ -625,6 +660,125 @@ def _asset_coverage(p: PeriodInputs) -> list[MetricResult]:
     return [ac, tac]
 
 
+# Liquidation recovery-rate ranges (low, mid) per ASSET_COVERAGE.md Formula 2. mid = midpoint
+# of the spec range; conservative scenario uses low, base scenario uses mid. Do NOT alter.
+_HAIRCUTS = {
+    "cash":                        (1.00, 1.00),    # 100%
+    "sti":                         (1.00, 1.00),    # 100%
+    "ar":                          (0.70, 0.775),   # 70%-85%
+    "inventory":                   (0.40, 0.50),    # 40%-60%
+    "ppe_real_estate":             (0.60, 0.70),    # 60%-80%
+    "ppe_equipment":               (0.30, 0.40),    # 30%-50%
+    "ppe_specialised":             (0.10, 0.20),    # 10%-30%
+    "ppe_leasehold":               (0.00, 0.05),    # 0%-10%
+    "ppe_fallback":                (0.30, 0.45),    # 30%-60% (composition unknown)
+    "goodwill":                    (0.00, 0.00),    # 0%
+    "intangibles_patents":         (0.10, 0.15),    # 10%-20%
+    "intangibles_customer_lists":  (0.00, 0.05),    # 0%-10%
+    "intangibles_software":        (0.00, 0.025),   # 0%-5%
+    "intangibles_fallback":        (0.00, 0.10),    # 0%-20% (composition unknown)
+}
+_M = 1_000_000.0  # LLM composition amounts are USD millions; structured values are raw USD
+
+
+def _liq_value(idx: int, cash, sti, ar, inventory, ppe_net, intangibles, comp: Optional[dict]) -> float:
+    """Liquidation value of assets for scenario idx (0=conservative/low, 1=base/mid). All in raw USD."""
+    def h(key):
+        return _HAIRCUTS[key][idx]
+    v = (cash or 0.0) + (sti or 0.0)                      # cash + STI at 100%
+    v += (ar or 0.0) * h("ar")
+    v += (inventory or 0.0) * h("inventory")
+
+    # PP&E: per-type haircuts when LLM composition exists; residual + uncomposed at blanket.
+    ppe_keys = ("ppe_real_estate", "ppe_equipment", "ppe_specialised", "ppe_leasehold")
+    if comp and any(comp.get(k) is not None for k in ppe_keys):
+        categorised = 0.0
+        for k in ppe_keys:
+            amt = (comp.get(k) or 0.0) * _M
+            v += amt * h(k)
+            categorised += amt
+        residual = max((ppe_net or 0.0) - categorised, 0.0)
+        v += residual * h("ppe_fallback")
+    else:
+        v += (ppe_net or 0.0) * h("ppe_fallback")
+
+    # Goodwill recovers 0% (omitted). Intangibles: per-type when composition exists.
+    intan_keys = ("intangibles_patents", "intangibles_customer_lists", "intangibles_software")
+    if comp and any(comp.get(k) is not None for k in intan_keys):
+        categorised = 0.0
+        for k in intan_keys:
+            amt = (comp.get(k) or 0.0) * _M
+            v += amt * h(k)
+            categorised += amt
+        residual = max((intangibles or 0.0) - categorised, 0.0)
+        v += residual * h("intangibles_fallback")
+    else:
+        v += (intangibles or 0.0) * h("intangibles_fallback")
+    return v
+
+
+def _liquidation_coverage(p: PeriodInputs, comp: Optional[dict] = None) -> MetricResult:
+    """Liquidation-adjusted asset coverage (ASSET_COVERAGE.md Formula 2). Stores the base-scenario
+    value; the conservative-base range goes in the flag + extra (for the Dimension 3 alert).
+    Uses LLM asset composition when present; otherwise blanket PP&E/intangibles haircuts."""
+    total, _src, dflags, _level = _total_debt(p)
+    base_d = dict(metric_name="liquidation_asset_coverage", period_end=p.period_end,
+                  form_type=p.form_type, filing_date=p.filing_date, value_unit="ratio",
+                  formula_version="F2")
+    if total is None or total == 0:
+        return MetricResult(**base_d, value=None, flags=dflags + ["total debt unavailable"],
+                            extraction_path="none")
+    cash = _v(p.instant.get("cash"))
+    sti = _v(p.instant.get("short_term_investments"))
+    ar = _v(p.instant.get("accounts_receivable"))
+    inventory = _v(p.instant.get("inventory"))
+    ppe_net = _v(p.instant.get("ppe_net"))
+    intangibles = _v(p.instant.get("intangibles"))
+    if all(x is None for x in (cash, sti, ar, inventory, ppe_net, intangibles)):
+        return MetricResult(**base_d, value=None,
+                            flags=["no asset inputs available for liquidation value"], extraction_path="none")
+
+    recon_flags: list[str] = []
+    _ppe_keys = ("ppe_real_estate", "ppe_equipment", "ppe_specialised", "ppe_leasehold")
+    # Reconciliation guard A — UNDERSTATEMENT: if the LLM ppe_total is less than 10% of XBRL
+    # net PP&E, it likely grabbed a sub-component (a depreciation line / single asset class).
+    # Discard the LLM PP&E entirely and apply the blanket haircut to the balance-sheet value.
+    if comp and ppe_net and comp.get("ppe_total") is not None:
+        llm_total = comp["ppe_total"] * _M
+        if llm_total < ppe_net * 0.10:
+            recon_flags.append(
+                f"LLM PP&E total ({llm_total / _M:,.0f}m) is less than 10% of balance sheet net "
+                f"PP&E ({ppe_net / _M:,.0f}m) — likely extracted a sub-component; blanket haircut "
+                f"applied to balance sheet value")
+            comp = {k: v for k, v in comp.items() if k not in _ppe_keys and k != "ppe_total"}
+
+    # Reconciliation guard B — OVERSTATEMENT: if the LLM PP&E components sum to >120% of XBRL
+    # net PP&E, the LLM likely picked up GROSS values — drop the components, blanket the net value.
+    if comp and ppe_net and any(comp.get(k) is not None for k in _ppe_keys):
+        comp_sum = sum((comp.get(k) or 0.0) for k in _ppe_keys) * _M
+        if comp_sum > ppe_net * 1.20:
+            recon_flags.append(
+                f"PP&E component sum ({comp_sum / _M:,.0f}m) exceeds balance sheet net PP&E "
+                f"({ppe_net / _M:,.0f}m) by >20% — likely gross values extracted; blanket "
+                f"haircut applied to balance sheet net value")
+            comp = {k: v for k, v in comp.items() if k not in _ppe_keys}
+
+    cons = _liq_value(0, cash, sti, ar, inventory, ppe_net, intangibles, comp) / total
+    base_v = _liq_value(1, cash, sti, ar, inventory, ppe_net, intangibles, comp) / total
+    flags = [f"liquidation coverage range: {cons:.2f}x to {base_v:.2f}x"]
+    flags.extend(recon_flags)
+    if comp is None:
+        flags.append("no LLM asset composition — blanket PP&E (30-60%) / intangibles (0-20%) "
+                     "haircuts applied; coarse estimate")
+        path = "derived"
+    else:
+        path = "llm"
+    return MetricResult(**base_d, value=base_v, flags=flags, extraction_path=path,
+                        extra={"conservative_coverage": cons, "base_coverage": base_v},
+                        audit_log={"total_debt": total, "conservative": cons, "base": base_v,
+                                   "has_llm_composition": comp is not None})
+
+
 def _ebitda_margin(p: PeriodInputs) -> MetricResult:
     ebitda_q = _ebitda_quarterly(p)
     rev = _v(p.quarterly.get("revenue"))
@@ -679,6 +833,46 @@ def _load_llm_extraction(cik: str) -> Optional[dict]:
         return dict(row) if row else None
     except sqlite3.OperationalError:
         return None  # table not created yet
+
+
+def _load_llm_loss_provisions(cik: str) -> Optional[dict]:
+    """Most recent llm_loss_provisions row for an issuer (Group 4), or None / missing-table."""
+    import sqlite3
+    try:
+        from db import DB_PATH
+    except Exception:
+        DB_PATH = "credit_warning.db"
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM llm_loss_provisions WHERE cik = ? ORDER BY extracted_at DESC LIMIT 1",
+            (cik,),
+        ).fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except sqlite3.OperationalError:
+        return None
+
+
+def _load_llm_asset_composition(cik: str) -> Optional[dict]:
+    """Most recent llm_asset_composition row for an issuer (Group 6), or None / missing-table."""
+    import sqlite3
+    try:
+        from db import DB_PATH
+    except Exception:
+        DB_PATH = "credit_warning.db"
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM llm_asset_composition WHERE cik = ? ORDER BY extracted_at DESC LIMIT 1",
+            (cik,),
+        ).fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except sqlite3.OperationalError:
+        return None
 
 
 def _maturity_coverage(p: PeriodInputs, llm: Optional[dict] = None) -> MetricResult:
@@ -800,12 +994,43 @@ def _covenant_headroom(leverage: MetricResult, coverage: MetricResult, p: Period
     return [lev, cov]
 
 
-def _loss_provisions(p: PeriodInputs) -> MetricResult:
+def _loss_provisions(p: PeriodInputs, llm_lp: Optional[dict] = None) -> MetricResult:
+    base = dict(metric_name="loss_provisions_balance", period_end=p.period_end, form_type=p.form_type,
+                filing_date=p.filing_date, value_unit="millions_usd")
+
+    # Prefer the LLM contingency-footnote extraction (Group 4) when present — the XBRL tag
+    # LossContingencyAccrual is rarely populated, so this is where most issuers get a value.
+    if llm_lp is not None and llm_lp.get("total_accrued") is not None:
+        flags = ["loss provisions from LLM contingency-footnote extraction"]
+        if llm_lp.get("total_maximum_exposure") is not None:
+            flags.append(f"reasonably-possible max exposure (unrecorded) ${llm_lp['total_maximum_exposure']:,.0f}M")
+        if llm_lp.get("regulatory_investigation"):
+            flags.append("regulatory investigation disclosed")
+        return MetricResult(**base, value=llm_lp["total_accrued"], extraction_path="llm", flags=flags,
+                            audit_log={"total_accrued": llm_lp.get("total_accrued"),
+                                       "total_maximum_exposure": llm_lp.get("total_maximum_exposure"),
+                                       "regulatory_investigation": llm_lp.get("regulatory_investigation")})
+
+    # LLM ran but disclosed no accrued provisions — report null with matter context (Apple
+    # case: matters extracted but nothing accrued). Do NOT fall through to the XBRL path.
+    if llm_lp is not None:
+        try:
+            matters = json.loads(llm_lp.get("matters_json") or "[]")
+        except (json.JSONDecodeError, TypeError):
+            matters = []
+        n = len(matters)
+        tiers = [mt.get("tier") for mt in matters if isinstance(mt, dict) and mt.get("tier") is not None]
+        highest = max(tiers) if tiers else None
+        return MetricResult(**base, value=None, extraction_path="llm",
+                            flags=[f"LLM extraction complete — no accrued provisions disclosed; "
+                                   f"matters extracted: {n} (highest tier: {highest})"],
+                            audit_log={"matters": n, "highest_tier": highest,
+                                       "total_maximum_exposure": llm_lp.get("total_maximum_exposure"),
+                                       "regulatory_investigation": llm_lp.get("regulatory_investigation")})
+
     cur = _v(p.instant.get("loss_contingency_current"))
     nc = _v(p.instant.get("loss_contingency_noncurrent"))
     env = _v(p.instant.get("environmental_accrual"))
-    base = dict(metric_name="loss_provisions_balance", period_end=p.period_end, form_type=p.form_type,
-                filing_date=p.filing_date, value_unit="millions_usd")
     src: dict[str, str] = {}
     for name in ("loss_contingency_current", "loss_contingency_noncurrent", "environmental_accrual"):
         rv = p.instant.get(name)
@@ -839,6 +1064,8 @@ _FI_FLAG_NO_ALERT = {
                       "haircuts not applicable without bank-specific asset quality data",
     "tangible_asset_coverage": "financial institution — Formula 1 book value coverage only; "
                                "liquidation haircuts not applicable",
+    "liquidation_asset_coverage": "financial institution — liquidation haircuts not applicable "
+                                  "without bank-specific asset quality data",
 }
 # Computed-with-flag, alerts retained.
 _FI_FLAG = {
@@ -883,6 +1110,8 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
     # Phase-3 LLM footnote terms (covenant thresholds, maturity schedule, revolver), loaded
     # once per issuer. None when no extraction has been persisted -> proxy/current-portion fallback.
     llm = _load_llm_extraction(result.metadata.cik)
+    llm_lp = _load_llm_loss_provisions(result.metadata.cik)
+    llm_ac = _load_llm_asset_composition(result.metadata.cik)
 
     out: list[MetricResult] = []
     for i, p in enumerate(periods):
@@ -899,9 +1128,10 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
         out.append(_revenue_yoy(p, prior_year))
         out.append(_debt_to_equity(p))
         out.extend(_asset_coverage(p))
+        out.append(_liquidation_coverage(p, llm_ac))
         out.append(_maturity_coverage(p, llm))
         out.extend(_covenant_headroom(leverage, coverage, p, llm))
-        out.append(_loss_provisions(p))
+        out.append(_loss_provisions(p, llm_lp))
 
     if institution_type == "financial":
         for m in out:

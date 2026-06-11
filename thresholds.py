@@ -15,6 +15,7 @@ Threshold tables use the Formula-1 Adjusted columns: leverage +0.5x, coverage -0
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Optional
 
@@ -386,12 +387,70 @@ def _covenant_proxy_alert(m: MetricResult) -> Optional[str]:
     return None
 
 
+def _liquidation_coverage_alert(m: MetricResult) -> Optional[str]:
+    """Liquidation coverage alert (ASSET_COVERAGE.md Dimension 3) — most severe across both
+    scenarios. Base: <0.7 Flag, <0.5 Stress, <0.3 Critical. Conservative: <0.5 Stress, <0.3 Critical."""
+    if m.value is None:
+        return None
+    level: Optional[str] = None
+    base = m.extra.get("base_coverage")
+    cons = m.extra.get("conservative_coverage")
+    if base is not None:
+        if base < 0.3:
+            level = _escalate(level, "Critical")
+        elif base < 0.5:
+            level = _escalate(level, "Stress")
+        elif base < 0.7:
+            level = _escalate(level, "Flag")
+    if cons is not None:
+        if cons < 0.3:
+            level = _escalate(level, "Critical")
+        elif cons < 0.5:
+            level = _escalate(level, "Stress")
+    return level
+
+
+def _loss_provisions_alert(m: MetricResult, llm_lp: Optional[dict]) -> Optional[str]:
+    """Loss-provisions alert from the LLM contingency extraction (LOSS_PROVISIONS.md Dim 3):
+    highest ASC 450 tier across matters drives severity. regulatory_investigation alone maps
+    to Stress (not Critical) — Critical requires Tier 5 (a recorded provision).
+
+      Tier 5                          -> Critical
+      Tier 4, or regulatory (no T5)   -> Stress
+      Tier 3                          -> Flag
+      Tier 2                          -> Watch
+      Tier 1 only / no matters        -> existing XBRL absolute thresholds (currently none)
+    """
+    if llm_lp is None:
+        return None  # no LLM extraction -> existing behaviour (no alert)
+    try:
+        matters = json.loads(llm_lp.get("matters_json") or "[]")
+    except (json.JSONDecodeError, TypeError):
+        matters = []
+    tiers = [mt.get("tier") for mt in matters if isinstance(mt, dict) and mt.get("tier") is not None]
+    highest = max(tiers) if tiers else None
+    regulatory = llm_lp.get("regulatory_investigation") == 1
+
+    if highest == 5:
+        return "Critical"
+    if highest == 4 or regulatory:
+        return "Stress"
+    if highest == 3:
+        return "Flag"
+    if highest == 2:
+        return "Watch"
+    return None  # Tier 1 only / no matters -> existing absolute thresholds (none defined)
+
+
 # --------------------------------------------------------------------------------------
 # Orchestration
 # --------------------------------------------------------------------------------------
 
-def assign_alerts(metrics: list[MetricResult], cls: Classification) -> None:
-    """Assign alert_level to every MetricResult in place, using the issuer classification."""
+def assign_alerts(metrics: list[MetricResult], cls: Classification,
+                  llm_lp: Optional[dict] = None) -> None:
+    """Assign alert_level to every MetricResult in place, using the issuer classification.
+    `llm_lp` is the issuer's most recent llm_loss_provisions row (Group 4), used for the
+    loss-provisions tier-based alert; None falls back to no loss-provisions alert."""
     by_metric: dict[str, list[MetricResult]] = {}
     for m in metrics:
         by_metric.setdefault(m.metric_name, []).append(m)
@@ -434,9 +493,13 @@ def assign_alerts(metrics: list[MetricResult], cls: Classification) -> None:
                 m.alert_level = _asset_coverage_alert(m, history)
             elif name == "tangible_asset_coverage":
                 m.alert_level = _tangible_coverage_alert(m, cls.de_group)
+            elif name == "liquidation_asset_coverage":
+                m.alert_level = _liquidation_coverage_alert(m)
             elif name == "maturity_coverage_near_term":
                 m.alert_level = _maturity_alert(m)
             elif name in ("covenant_headroom_leverage", "covenant_headroom_coverage"):
                 m.alert_level = _covenant_proxy_alert(m)
-            else:  # fcf_margin, loss_provisions_balance — stored, no Phase-2 threshold alert
+            elif name == "loss_provisions_balance":
+                m.alert_level = _loss_provisions_alert(m, llm_lp)
+            else:  # fcf_margin — stored, no Phase-2 threshold alert
                 m.alert_level = None

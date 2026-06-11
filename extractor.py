@@ -188,6 +188,15 @@ CONCEPTS: dict[str, Concept] = {
         "deferred_tax_assets", "instant", "first",
         ("DeferredTaxAssetsLiabilitiesNet", "DeferredTaxAssetsNet"),
     ),
+    # Liquidation-value inputs (Group 6 / ASSET_COVERAGE.md Formula 2 haircuts).
+    "accounts_receivable": Concept(
+        "accounts_receivable", "instant", "first",
+        ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent", "AccountsReceivableNet"),
+    ),
+    "ppe_net": Concept(
+        "ppe_net", "instant", "first",
+        ("PropertyPlantAndEquipmentNet",),
+    ),
     "loss_contingency_current": Concept(
         "loss_contingency_current", "instant", "first",
         ("LossContingencyAccrualAtCarryingValue",),
@@ -235,6 +244,16 @@ CONCEPTS: dict[str, Concept] = {
     # Net-interest detection only (§ coverage): presence triggers a null + flag, never used as value.
     "interest_net": Concept(
         "interest_net", "duration", "first", ("InterestIncomeExpenseNet",),
+    ),
+    # Interest income — used to gross up net interest into gross interest expense when only
+    # InterestIncomeExpenseNet is tagged (INTEREST_COVERAGE.md Input 2, Step 3).
+    "interest_income_operating": Concept(
+        "interest_income_operating", "duration", "first",
+        ("InterestIncomeOperating", "InterestAndDividendIncomeOperating"),
+    ),
+    "interest_income_investment": Concept(
+        "interest_income_investment", "duration", "first",
+        ("InvestmentIncomeInterest", "InterestIncomeNonoperating"),
     ),
     "operating_cash_flow": Concept(
         "operating_cash_flow", "duration", "first",

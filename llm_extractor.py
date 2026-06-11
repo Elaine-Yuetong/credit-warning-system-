@@ -350,6 +350,351 @@ def extract_from_filing(cik: str, form: str = "10-K", *,
     return footnote, extraction
 
 
+# ======================================================================================
+# Group 4 — Loss Provisions / Litigation Contingencies (LOSS_PROVISIONS.md)
+# ======================================================================================
+
+class ContingencyMatter(BaseModel):
+    """One material legal/regulatory/environmental matter disclosed in the contingency note."""
+    matter_description: str = Field(description="Brief description / name of the matter (1-2 sentences)")
+    tier: Optional[int] = Field(
+        default=None,
+        description="ASC 450 language tier per LOSS_PROVISIONS.md (severity rises with tier): "
+                    "1 = Remote (no financial impact expected); "
+                    "2 = Reasonably possible, quantified range disclosed; "
+                    "3 = Reasonably possible, no range given but described as potentially material; "
+                    "4 = Probable, amount not yet estimable; "
+                    "5 = Probable, amount estimable — provision recorded. "
+                    "Generic 'ordinary course of business' boilerplate maps to Tier 1.")
+    accrued_amount: Optional[float] = Field(default=None, description="Recorded provision for this matter, USD millions")
+    maximum_exposure: Optional[float] = Field(
+        default=None, description="Disclosed reasonably-possible maximum loss in excess of accrual, USD millions")
+    insurance_offset: Optional[float] = Field(default=None, description="Expected insurance recovery, USD millions")
+    settlement_reached: Optional[bool] = Field(default=None, description="True if a settlement has been reached")
+    verbatim_quote: Optional[str] = Field(
+        default=None, description="Verbatim ASC 450 sentence/phrase that determines the tier. Do not paraphrase. "
+                                  "For boilerplate Tier 1, quote the generic statement.")
+
+
+class ProvisionRollForward(BaseModel):
+    """Provision roll-forward table (USD millions), when disclosed."""
+    beginning_balance: Optional[float] = None
+    additions: Optional[float] = None
+    payments: Optional[float] = None
+    reversals: Optional[float] = None
+    ending_balance: Optional[float] = None
+
+
+class LossProvisionsExtraction(BaseModel):
+    """Complete structured extraction of loss provisions / litigation contingencies."""
+    roll_forward: Optional[ProvisionRollForward] = None
+    matters: list[ContingencyMatter] = Field(description="All material matters; empty list if none disclosed")
+    total_accrued: Optional[float] = Field(
+        default=None, description="Total recorded provision balance, USD millions (roll-forward ending balance "
+                                  "if present, else sum of per-matter accrued amounts)")
+    total_maximum_exposure: Optional[float] = Field(
+        default=None, description="Aggregate disclosed reasonably-possible maximum loss in excess of accruals, USD millions")
+    new_matters_detected: Optional[bool] = Field(
+        default=None, description="True if the filing describes any matter as newly arising/first disclosed this period")
+    regulatory_investigation: Optional[bool] = Field(
+        default=None, description="True if any investigation/enforcement by DOJ, SEC, CFTC, FTC, a state AG, or an "
+                                  "equivalent regulator is disclosed")
+    notes: Optional[str] = Field(default=None, description="Anything material not captured above")
+
+
+LOSS_PROVISIONS_SYSTEM_PROMPT = (
+    "You are a credit analyst extracting loss provisions and litigation contingencies from the "
+    "Loss Contingency / Commitments & Contingencies footnote and Legal Proceedings item of an SEC "
+    "filing. Extract ONLY what is explicitly stated.\n\n"
+    "Rules:\n"
+    "- For each material legal, regulatory, or environmental matter, create a ContingencyMatter and "
+    "classify its ASC 450 language tier (1-5) using these definitions EXACTLY (severity rises with tier):\n"
+    "    Tier 1 = Remote — no financial impact expected (also: generic 'ordinary course of business' boilerplate)\n"
+    "    Tier 2 = Reasonably possible, with a quantified range disclosed\n"
+    "    Tier 3 = Reasonably possible, no range given but described as potentially material\n"
+    "    Tier 4 = Probable, amount not yet estimable\n"
+    "    Tier 5 = Probable, amount estimable — a provision has been recorded\n"
+    "- Put the verbatim ASC 450 sentence/phrase that determines the tier into `verbatim_quote` — do not "
+    "paraphrase. If you cannot find a verbatim sentence, do not invent the matter.\n"
+    "- Never infer amounts not stated; leave nulls. All amounts are USD millions (convert thousands/billions).\n"
+    "- accrued_amount = recorded provision for that matter; maximum_exposure = disclosed reasonably-possible "
+    "loss in EXCESS of the accrual; insurance_offset = expected insurance recovery.\n"
+    "- roll_forward: populate only if a beginning/additions/payments/reversals/ending table is present.\n"
+    "- total_accrued = the roll-forward ending balance if present, otherwise the sum of per-matter accrued amounts.\n"
+    "- total_maximum_exposure = aggregate reasonably-possible maximum loss in excess of accruals.\n"
+    "- regulatory_investigation = true only if a named regulator's investigation/enforcement is disclosed.\n"
+    "- new_matters_detected = true if the text describes a matter as newly arising or first disclosed this period.\n"
+    "- If the footnote is only generic boilerplate ('subject to legal proceedings in the ordinary course'), "
+    "emit a single Tier 1 matter quoting that statement; do not fabricate specific matters."
+)
+
+LOSS_JSON_INSTRUCTION = (
+    "\n\nRespond with ONLY a single JSON object and nothing else — no prose, no commentary, no markdown "
+    "code fences. The JSON object must conform to this JSON Schema:\n"
+    + json.dumps(LossProvisionsExtraction.model_json_schema())
+)
+
+
+def _combine_loss(footnote: DebtFootnote) -> str:
+    """Concatenate the loss-contingency note + legal-proceedings item for the LLM."""
+    parts = []
+    if footnote.loss_contingency_text:
+        parts.append("=== LOSS CONTINGENCY / COMMITMENTS & CONTINGENCIES FOOTNOTE ===\n"
+                     + footnote.loss_contingency_text)
+    if footnote.legal_proceedings_text:
+        parts.append("=== LEGAL PROCEEDINGS ITEM ===\n" + footnote.legal_proceedings_text)
+    return "\n\n".join(parts)
+
+
+def extract_loss_provisions(source: DebtFootnote | str, *,
+                            client: Optional["anthropic.Anthropic"] = None,
+                            model: str = DEFAULT_MODEL) -> Optional[LossProvisionsExtraction]:
+    """Structured LLM extraction of loss provisions / litigation contingencies.
+
+    `source` may be a DebtFootnote (uses loss_contingency_text + legal_proceedings_text) or a raw
+    string. Returns a validated LossProvisionsExtraction, or None if there is no text/parse fails.
+    Persists to llm_loss_provisions when given a DebtFootnote (best-effort)."""
+    text = _combine_loss(source) if isinstance(source, DebtFootnote) else source
+    if not text or not text.strip():
+        return None
+
+    if client is None:
+        client_kwargs: dict = {}
+        base_url = os.environ.get("ANTHROPIC_BASE_URL")
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
+
+    # thinking parameter omitted — not supported by relay services (APIYI)
+    response = client.messages.create(
+        model=model,
+        max_tokens=MAX_TOKENS,
+        system=LOSS_PROVISIONS_SYSTEM_PROMPT + LOSS_JSON_INSTRUCTION,
+        messages=[{
+            "role": "user",
+            "content": "Extract the loss provisions and litigation contingencies (per-matter tier "
+                       "classification, roll-forward, totals, regulatory investigations) from the "
+                       "following filing text:\n\n" + text,
+        }],
+    )
+    raw = "".join(getattr(b, "text", "") for b in response.content if hasattr(b, "text"))
+    data = _extract_json(raw)
+    if data is None:
+        return None
+    try:
+        result = LossProvisionsExtraction.model_validate(data)
+    except ValidationError:
+        return None
+
+    if isinstance(source, DebtFootnote):
+        try:
+            save_loss_provisions_to_db(result, source.cik, source.accession, source.form_type, model)
+        except Exception as exc:  # pragma: no cover
+            print(f"warning: could not persist loss provisions to SQLite: {exc}", file=sys.stderr)
+    return result
+
+
+def save_loss_provisions_to_db(result: LossProvisionsExtraction, cik: str, accession: Optional[str],
+                               form_type: Optional[str], model: str, db_path: Optional[str] = None) -> None:
+    """Write one llm_loss_provisions row (ON CONFLICT REPLACE)."""
+    import db as _db  # lazy import to avoid any import cycle
+    reg = None if result.regulatory_investigation is None else (1 if result.regulatory_investigation else 0)
+    roll_json = result.roll_forward.model_dump_json() if result.roll_forward else None
+    matters_json = json.dumps([m.model_dump() for m in result.matters])
+
+    conn = _db.connect(db_path or _db.DB_PATH)
+    conn.execute(
+        """
+        INSERT INTO llm_loss_provisions (
+            cik, accession, form_type, total_accrued, total_maximum_exposure,
+            regulatory_investigation, roll_forward_json, matters_json, extracted_at, model_used)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (cik, accession, form_type, result.total_accrued, result.total_maximum_exposure,
+         reg, roll_json, matters_json, datetime.now(timezone.utc).isoformat(), model),
+    )
+    conn.commit()
+    conn.close()
+
+
+# ======================================================================================
+# Group 6 — Asset Composition for Liquidation Coverage (ASSET_COVERAGE.md Formula 2)
+# ======================================================================================
+
+class PPEComposition(BaseModel):
+    """PP&E (net) split by liquidation-recovery type, USD millions."""
+    total: Optional[float] = Field(default=None, description="Total PP&E, net (should reconcile to balance sheet)")
+    real_estate: Optional[float] = Field(default=None, description="Land and buildings")
+    equipment: Optional[float] = Field(default=None, description="General manufacturing / office equipment")
+    specialised: Optional[float] = Field(default=None, description="Specialised industrial equipment")
+    leasehold: Optional[float] = Field(default=None, description="Leasehold improvements")
+
+
+class InventoryComposition(BaseModel):
+    """Inventory split by stage, USD millions."""
+    raw_materials: Optional[float] = None
+    wip: Optional[float] = Field(default=None, description="Work in process")
+    finished_goods: Optional[float] = None
+
+
+class IntangiblesComposition(BaseModel):
+    """Intangible assets split by liquidation-recovery type, USD millions."""
+    patents: Optional[float] = Field(default=None, description="Patents / IP with licensing value")
+    customer_lists: Optional[float] = Field(default=None, description="Customer relationships / lists / trade names")
+    software: Optional[float] = Field(default=None, description="Capitalised software")
+
+
+class AssetCompositionExtraction(BaseModel):
+    """Asset composition for liquidation-adjusted coverage (Formula 2 inputs)."""
+    ppe: PPEComposition
+    inventory: InventoryComposition
+    intangibles: IntangiblesComposition
+    collateral_description: Optional[str] = Field(
+        default=None, description="Verbatim description of assets pledged as collateral for secured debt")
+    collateral_type: Optional[str] = Field(
+        default=None, description="One of: substantially_all | specific | none")
+    notes: Optional[str] = None
+
+
+# The haircut (recovery-rate) table is reproduced EXACTLY from ASSET_COVERAGE.md Formula 2.
+# It is included so the model buckets each asset into the correct recovery tier; the system
+# applies the haircuts deterministically — the model must NOT apply haircuts or compute coverage.
+ASSET_COMPOSITION_SYSTEM_PROMPT = (
+    "You are a credit analyst extracting ASSET COMPOSITION (not ratios) from the PP&E, "
+    "Inventory, and Intangibles footnotes and the Debt footnote of an SEC filing, to support a "
+    "liquidation-coverage calculation. Extract ONLY amounts explicitly stated; leave nulls "
+    "otherwise. All amounts in USD millions.\n\n"
+    "Categorise assets into these recovery-tier buckets (the system applies the haircuts; you "
+    "only assign amounts to the right bucket). For reference, the recovery-rate ranges are:\n"
+    "  Cash & short-term investments: 100%\n"
+    "  Accounts receivable: 70%–85%\n"
+    "  Inventory: 40%–60%\n"
+    "  PP&E — real estate (land/buildings): 60%–80%\n"
+    "  PP&E — general manufacturing equipment: 30%–50%\n"
+    "  PP&E — specialised industrial equipment: 10%–30%\n"
+    "  PP&E — leasehold improvements: 0%–10%\n"
+    "  Goodwill: 0%\n"
+    "  Intangibles — patents / IP with licensing value: 10%–20%\n"
+    "  Intangibles — customer lists / trade names: 0%–10%\n"
+    "  Intangibles — capitalised software: 0%–5%\n\n"
+    "Rules:\n"
+    "- ppe: extract NET BOOK VALUES (after accumulated depreciation), NOT gross/cost. PP&E "
+    "footnotes typically show a gross column, an accumulated-depreciation row, and a net total — "
+    "use the NET column only. The PP&E net total (ppe.total) is the SINGLE bottom-line figure in "
+    "the table, typically labelled 'Property and equipment, net' or 'Total property and equipment, "
+    "net'. It should be the LARGEST single number in the PP&E table and typically in the hundreds "
+    "of millions or billions for any company with significant physical assets. Do NOT extract "
+    "depreciation expense, accumulated depreciation, or any individual asset-class sub-total as the "
+    "total. Split net PP&E into real_estate (land+buildings), equipment "
+    "(general), specialised (specialised industrial), leasehold (leasehold improvements). Put the "
+    "net PP&E total in `total`. SANITY CHECK: the component amounts should sum to approximately "
+    "`total`, and `total` should match the balance-sheet net PP&E. If the footnote only breaks out "
+    "categories on a GROSS basis, do NOT report those gross category amounts as net — instead leave "
+    "the category buckets null and report only the net `total`.\n"
+    "- inventory: split into raw_materials / wip / finished_goods if disclosed.\n"
+    "- intangibles: report net carrying amounts (after accumulated amortisation). Split into patents "
+    "(incl. developed technology/IP), customer_lists (incl. customer relationships and trade "
+    "names/trademarks), software (capitalised internal-use software).\n"
+    "- collateral_description: verbatim sentence describing assets pledged for secured debt, from the "
+    "Debt footnote, if any. collateral_type = 'substantially_all' if 'substantially all assets' is "
+    "pledged, 'specific' if particular assets are named, 'none' if no secured debt / no pledge.\n"
+    "- PARTIAL RESULTS: if footnote text is present but you cannot break out every bucket, return "
+    "whatever amounts ARE stated — never refuse, never return an all-null object. At minimum populate "
+    "the net totals (ppe.total, inventory stages, intangible classes) that the filing discloses.\n"
+    "- Do NOT invent haircut values, do NOT apply haircuts, do NOT compute any coverage ratio — "
+    "amounts only. Leave a bucket null only if the filing does not disclose it."
+)
+
+ASSET_JSON_INSTRUCTION = (
+    "\n\nRespond with ONLY a single JSON object and nothing else — no prose, no markdown fences. "
+    "The JSON object must conform to this JSON Schema:\n"
+    + json.dumps(AssetCompositionExtraction.model_json_schema())
+)
+
+
+def _combine_assets(footnote: DebtFootnote) -> str:
+    """Concatenate PP&E + inventory + intangibles footnotes + the debt footnote (for collateral)."""
+    parts = []
+    if footnote.ppe_text:
+        parts.append("=== PROPERTY, PLANT & EQUIPMENT FOOTNOTE ===\n" + footnote.ppe_text)
+    if footnote.inventory_text:
+        parts.append("=== INVENTORY FOOTNOTE ===\n" + footnote.inventory_text)
+    if footnote.intangibles_text:
+        parts.append("=== GOODWILL & INTANGIBLES FOOTNOTE ===\n" + footnote.intangibles_text)
+    if footnote.text:
+        parts.append("=== DEBT FOOTNOTE (for collateral description) ===\n" + footnote.text)
+    return "\n\n".join(parts)
+
+
+def extract_asset_composition(source: DebtFootnote | str, *,
+                              client: Optional["anthropic.Anthropic"] = None,
+                              model: str = DEFAULT_MODEL) -> Optional[AssetCompositionExtraction]:
+    """Structured LLM extraction of asset composition for Formula 2. Persists to
+    llm_asset_composition when given a DebtFootnote (best-effort)."""
+    text = _combine_assets(source) if isinstance(source, DebtFootnote) else source
+    if not text or not text.strip():
+        return None
+
+    if client is None:
+        client_kwargs: dict = {}
+        base_url = os.environ.get("ANTHROPIC_BASE_URL")
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
+
+    # thinking parameter omitted — not supported by relay services (APIYI)
+    response = client.messages.create(
+        model=model,
+        max_tokens=MAX_TOKENS,
+        system=ASSET_COMPOSITION_SYSTEM_PROMPT + ASSET_JSON_INSTRUCTION,
+        messages=[{
+            "role": "user",
+            "content": "Extract the PP&E / inventory / intangibles composition and secured-debt "
+                       "collateral description from the following filing footnote text:\n\n" + text,
+        }],
+    )
+    raw = "".join(getattr(b, "text", "") for b in response.content if hasattr(b, "text"))
+    data = _extract_json(raw)
+    if data is None:
+        return None
+    try:
+        result = AssetCompositionExtraction.model_validate(data)
+    except ValidationError:
+        return None
+
+    if isinstance(source, DebtFootnote):
+        try:
+            save_asset_composition_to_db(result, source.cik, source.accession, source.form_type, model)
+        except Exception as exc:  # pragma: no cover
+            print(f"warning: could not persist asset composition to SQLite: {exc}", file=sys.stderr)
+    return result
+
+
+def save_asset_composition_to_db(result: AssetCompositionExtraction, cik: str, accession: Optional[str],
+                                 form_type: Optional[str], model: str, db_path: Optional[str] = None) -> None:
+    """Flatten AssetCompositionExtraction into one llm_asset_composition row (ON CONFLICT REPLACE)."""
+    import db as _db  # lazy import to avoid any import cycle
+    p, inv, it = result.ppe, result.inventory, result.intangibles
+    conn = _db.connect(db_path or _db.DB_PATH)
+    conn.execute(
+        """
+        INSERT INTO llm_asset_composition (
+            cik, accession, form_type, ppe_total, ppe_real_estate, ppe_equipment, ppe_specialised,
+            ppe_leasehold, inventory_raw_materials, inventory_wip, inventory_finished_goods,
+            intangibles_patents, intangibles_customer_lists, intangibles_software,
+            collateral_description, collateral_type, extracted_at, model_used)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (cik, accession, form_type, p.total, p.real_estate, p.equipment, p.specialised, p.leasehold,
+         inv.raw_materials, inv.wip, inv.finished_goods,
+         it.patents, it.customer_lists, it.software,
+         result.collateral_description, result.collateral_type,
+         datetime.now(timezone.utc).isoformat(), model),
+    )
+    conn.commit()
+    conn.close()
+
+
 # --------------------------------------------------------------------------------------
 # Manual test — Rite Aid (requires ANTHROPIC_API_KEY)
 # --------------------------------------------------------------------------------------
@@ -409,3 +754,51 @@ if __name__ == "__main__":
     if result.notes:
         print(f"\nNOTES: {result.notes}")
     print("═" * 78)
+
+    # ---- Group 4: Loss provisions / litigation contingencies ----
+    print(f"\nExtracting loss provisions — contingency note {len(footnote.loss_contingency_text):,} chars "
+          f"+ legal proceedings {len(footnote.legal_proceedings_text):,} chars …")
+    lp = extract_loss_provisions(footnote)
+    if lp is None:
+        print("No loss-provisions extraction produced (no contingency text or parse failed).")
+    else:
+        print("═" * 78)
+        print("  EXTRACTED LOSS PROVISIONS / CONTINGENCIES")
+        print("═" * 78)
+        print(f"\nTOTALS: accrued=${lp.total_accrued}M  max_exposure=${lp.total_maximum_exposure}M  "
+              f"regulatory_investigation={lp.regulatory_investigation}  new_matters={lp.new_matters_detected}")
+        if lp.roll_forward:
+            rf = lp.roll_forward
+            print(f"ROLL-FORWARD: begin={rf.beginning_balance} +adds={rf.additions} "
+                  f"-pmts={rf.payments} -rev={rf.reversals} = end={rf.ending_balance}")
+        print(f"\nMATTERS ({len(lp.matters)}):")
+        for m in lp.matters:
+            print(f"  • [Tier {m.tier}] {m.matter_description[:90]}"
+                  f"  accrued={m.accrued_amount} max={m.maximum_exposure}"
+                  f"{'  SETTLED' if m.settlement_reached else ''}")
+            if m.verbatim_quote:
+                print(f"      “{m.verbatim_quote[:200]}”")
+        if lp.notes:
+            print(f"\nNOTES: {lp.notes}")
+        print("═" * 78)
+
+    # ---- Group 6: Asset composition for liquidation coverage ----
+    print(f"\nExtracting asset composition — PP&E {len(footnote.ppe_text):,} + inventory "
+          f"{len(footnote.inventory_text):,} + intangibles {len(footnote.intangibles_text):,} chars …")
+    ac = extract_asset_composition(footnote)
+    if ac is None:
+        print("No asset-composition extraction produced.")
+    else:
+        print("═" * 78)
+        print("  EXTRACTED ASSET COMPOSITION (Formula 2 inputs)")
+        print("═" * 78)
+        print(f"  PP&E: total={ac.ppe.total} real_estate={ac.ppe.real_estate} equipment={ac.ppe.equipment} "
+              f"specialised={ac.ppe.specialised} leasehold={ac.ppe.leasehold}")
+        print(f"  Inventory: raw={ac.inventory.raw_materials} wip={ac.inventory.wip} "
+              f"finished={ac.inventory.finished_goods}")
+        print(f"  Intangibles: patents={ac.intangibles.patents} customer_lists={ac.intangibles.customer_lists} "
+              f"software={ac.intangibles.software}")
+        print(f"  Collateral: type={ac.collateral_type}")
+        if ac.collateral_description:
+            print(f"    “{ac.collateral_description[:200]}”")
+        print("═" * 78)

@@ -57,6 +57,7 @@ _SIGNAL_TERMS = [
 
 _WINDOW = 30_000                                   # max chars to capture for the debt footnote
 _SHORT_WINDOW = 10_000                              # going-concern / subsequent-events are shorter
+_ASSET_WINDOW = 15_000                              # PP&E / intangibles category tables run long
 _NOTE_BOUNDARY = re.compile(r"\bnote\s+\d{1,2}\b", re.I)   # next-note heading = section end
 
 # Going-concern note headings (spec: covenant breach / waiver expiry language lives here).
@@ -78,6 +79,58 @@ _DISTRESS_SIGNAL_TERMS = [
     "going concern", "substantial doubt", "waiver", "default", "covenant",
     "forbearance", "chapter 11", "bankruptcy", "maturit", "credit agreement",
     "refinanc", "liquidity", "amend", "restructur", "cross-default", "expire",
+]
+
+# Loss-contingency / litigation footnote (LOSS_PROVISIONS.md "Where it lives", Location 2).
+_LOSS_CONTINGENCY_HEADINGS = [
+    r"commitments and contingencies",
+    r"loss contingencies",
+    r"contingent liabilities",
+    r"legal proceedings",
+    r"litigation",
+]
+# Item 3 Legal Proceedings (10-K) / Part II Item 1 (10-Q). "legal proceedings" also catches
+# the 10-Q's Part II Item 1 even though the function is named for the 10-K's Item 3.
+_LEGAL_PROCEEDINGS_HEADINGS = [
+    r"item\s*3",
+    r"legal proceedings",
+]
+# ASC 450 / contingency vocabulary for scoring both windows.
+_CONTINGENCY_SIGNAL_TERMS = [
+    "probable", "reasonably possible", "remote", "accrued", "settlement",
+    "legal proceedings", "contingency", "liability", "reserve", "insurance",
+    "indemnification", "regulatory",
+]
+_CONTINGENCY_WINDOW = 20_000   # contingency notes can be long
+
+# Asset-composition footnotes (Group 6 / ASSET_COVERAGE.md Formula 2). Each has its own
+# headings + signal terms; same keyword-density scoring as the other locators.
+_PPE_HEADINGS = [
+    r"property,?\s+plant\s+and\s+equipment",
+    r"property\s+and\s+equipment",
+    r"fixed assets",
+]
+_PPE_SIGNAL_TERMS = [
+    "land", "buildings", "building", "machinery", "equipment", "leasehold",
+    "improvements", "construction in progress", "accumulated depreciation",
+    "depreciation", "useful lives", "property",
+]
+_INVENTORY_HEADINGS = [
+    r"\binventor",          # inventory / inventories
+]
+_INVENTORY_SIGNAL_TERMS = [
+    "raw materials", "work in process", "work-in-process", "finished goods",
+    "lifo", "fifo", "lower of cost", "net realizable", "reserve", "inventory",
+]
+_INTANGIBLES_HEADINGS = [
+    r"goodwill and (?:other )?intangible",
+    r"(?:other )?intangible assets",
+    r"\bintangibles\b",
+]
+_INTANGIBLES_SIGNAL_TERMS = [
+    "patents", "patent", "customer relationships", "customer lists", "trade names",
+    "trademark", "developed technology", "capitalized software", "software",
+    "amortization", "finite-lived", "indefinite-lived", "intangible",
 ]
 
 
@@ -111,6 +164,13 @@ class DebtFootnote:
     # debt window can miss. The LLM (Step 2) reads debt + going-concern + subsequent.
     going_concern_text: str = ""
     subsequent_events_text: str = ""
+    # Loss-provisions sources (Group 4): the contingency footnote + legal-proceedings item.
+    loss_contingency_text: str = ""
+    legal_proceedings_text: str = ""
+    # Asset-composition sources (Group 6): PP&E / inventory / intangibles footnotes.
+    ppe_text: str = ""
+    inventory_text: str = ""
+    intangibles_text: str = ""
 
 
 # --------------------------------------------------------------------------------------
@@ -275,6 +335,35 @@ def locate_subsequent_events_note(text: str) -> tuple[bool, Optional[str], int, 
                            _SHORT_WINDOW, min_distinct=2)
 
 
+def locate_loss_contingency_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Loss Contingency / Commitments & Contingencies footnote. 20k window."""
+    return _locate_section(text, _LOSS_CONTINGENCY_HEADINGS, _CONTINGENCY_SIGNAL_TERMS,
+                           _CONTINGENCY_WINDOW, min_distinct=3)
+
+
+def locate_legal_proceedings_item3(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Legal Proceedings item (10-K Item 3 / 10-Q Part II Item 1). 10k window."""
+    return _locate_section(text, _LEGAL_PROCEEDINGS_HEADINGS, _CONTINGENCY_SIGNAL_TERMS,
+                           _SHORT_WINDOW, min_distinct=2)
+
+
+def locate_ppe_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Property, Plant & Equipment footnote (category table). 15k window — the
+    gross/net category table can be large and was being truncated at 10k."""
+    return _locate_section(text, _PPE_HEADINGS, _PPE_SIGNAL_TERMS, _ASSET_WINDOW, min_distinct=3)
+
+
+def locate_inventory_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Inventory footnote (raw materials / WIP / finished goods). 10k window."""
+    return _locate_section(text, _INVENTORY_HEADINGS, _INVENTORY_SIGNAL_TERMS, _SHORT_WINDOW, min_distinct=2)
+
+
+def locate_intangibles_note(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the Goodwill & Intangibles footnote (intangibles by type). 15k window — the
+    intangibles-by-class table can be large and was being truncated at 10k."""
+    return _locate_section(text, _INTANGIBLES_HEADINGS, _INTANGIBLES_SIGNAL_TERMS, _ASSET_WINDOW, min_distinct=2)
+
+
 # --------------------------------------------------------------------------------------
 # Orchestration
 # --------------------------------------------------------------------------------------
@@ -298,6 +387,11 @@ def get_debt_footnote(client: SecClient, cik: str, form: str = "10-K") -> Option
     found, heading, start, end, hits = locate_debt_footnote(text)
     gc_found, _gc_h, gc_s, gc_e, _gc_hits = locate_going_concern_note(text)
     se_found, _se_h, se_s, se_e, _se_hits = locate_subsequent_events_note(text)
+    lc_found, _lc_h, lc_s, lc_e, _lc_hits = locate_loss_contingency_note(text)
+    lp_found, _lp_h, lp_s, lp_e, _lp_hits = locate_legal_proceedings_item3(text)
+    pp_found, _pp_h, pp_s, pp_e, _pp_hits = locate_ppe_note(text)
+    iv_found, _iv_h, iv_s, iv_e, _iv_hits = locate_inventory_note(text)
+    it_found, _it_h, it_s, it_e, _it_hits = locate_intangibles_note(text)
     return DebtFootnote(
         cik=cik10, form=form, form_type=form, accession=ref.accession, source_url=url,
         found=found, heading=heading, char_start=start, char_end=end,
@@ -305,6 +399,11 @@ def get_debt_footnote(client: SecClient, cik: str, form: str = "10-K") -> Option
         full_text_len=len(text), signal_hits=hits,
         going_concern_text=text[gc_s:gc_e] if gc_found else "",
         subsequent_events_text=text[se_s:se_e] if se_found else "",
+        loss_contingency_text=text[lc_s:lc_e] if lc_found else "",
+        legal_proceedings_text=text[lp_s:lp_e] if lp_found else "",
+        ppe_text=text[pp_s:pp_e] if pp_found else "",
+        inventory_text=text[iv_s:iv_e] if iv_found else "",
+        intangibles_text=text[it_s:it_e] if it_found else "",
     )
 
 

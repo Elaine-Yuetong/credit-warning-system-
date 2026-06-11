@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 
 import db
 from extractor import SecClient, extract
-from metrics import compute_metrics, MetricResult
+from metrics import compute_metrics, MetricResult, _load_llm_loss_provisions
 from thresholds import assign_alerts, classify
 
 # Alert icons — canonical legend (§6.5): 🔴 Critical, 🟠 Stress, 🟡 Flag, 🔵 Watch, ✅ None.
@@ -43,6 +43,7 @@ DISPLAY_ROWS = [
     ("debt_to_equity", "D/E Ratio", "x"),
     ("asset_coverage", "Asset Coverage", "x"),
     ("tangible_asset_coverage", "Tangible Asset Cov", "x"),
+    ("liquidation_asset_coverage", "Liquidation Cov", "x"),
     ("maturity_coverage_near_term", "Maturity Cov (NT)", "x"),
     ("covenant_headroom_leverage", "Covenant Lev (px)", "x"),
     ("covenant_headroom_coverage", "Covenant Cov (px)", "x"),
@@ -223,8 +224,8 @@ def run(cik: str) -> int:
     #3. Calculate
     metrics = compute_metrics(result, cls.institution_type)
 
-    #4. Distribute the alert level
-    assign_alerts(metrics, cls)
+    #4. Distribute the alert level (loss-provisions tier alert uses the LLM extraction row)
+    assign_alerts(metrics, cls, _load_llm_loss_provisions(result.metadata.cik))
 
     #5. Store into database
     conn = db.connect()

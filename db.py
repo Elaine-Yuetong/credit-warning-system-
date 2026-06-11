@@ -141,6 +141,49 @@ CREATE TABLE IF NOT EXISTS llm_extractions (
     raw_json                    TEXT,
     UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
 );
+
+-- LLM-extracted loss provisions / litigation contingencies (Group 4, LOSS_PROVISIONS.md).
+-- matters_json holds the per-matter list (description, tier 1-5, amounts, verbatim quote);
+-- roll_forward_json holds the provision roll-forward when disclosed.
+CREATE TABLE IF NOT EXISTS llm_loss_provisions (
+    id                       INTEGER PRIMARY KEY AUTOINCREMENT,
+    cik                      TEXT NOT NULL,
+    accession                TEXT,
+    form_type                TEXT,
+    total_accrued            REAL,    -- USD millions (recorded provision balance)
+    total_maximum_exposure   REAL,    -- USD millions (reasonably-possible loss in excess of accrual)
+    regulatory_investigation INTEGER, -- 1/0/null
+    roll_forward_json        TEXT,
+    matters_json             TEXT,
+    extracted_at             TEXT NOT NULL,
+    model_used               TEXT,
+    UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
+);
+
+-- LLM-extracted asset composition (Group 6 / ASSET_COVERAGE.md Formula 2). Feeds the
+-- liquidation_asset_coverage haircut computation; amounts in USD millions.
+CREATE TABLE IF NOT EXISTS llm_asset_composition (
+    id                        INTEGER PRIMARY KEY AUTOINCREMENT,
+    cik                       TEXT NOT NULL,
+    accession                 TEXT,
+    form_type                 TEXT,
+    ppe_total                 REAL,
+    ppe_real_estate           REAL,
+    ppe_equipment             REAL,
+    ppe_specialised           REAL,
+    ppe_leasehold             REAL,
+    inventory_raw_materials   REAL,
+    inventory_wip             REAL,
+    inventory_finished_goods  REAL,
+    intangibles_patents       REAL,
+    intangibles_customer_lists REAL,
+    intangibles_software      REAL,
+    collateral_description    TEXT,
+    collateral_type           TEXT,   -- substantially_all / specific / none
+    extracted_at              TEXT NOT NULL,
+    model_used                TEXT,
+    UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
+);
 """
 
 

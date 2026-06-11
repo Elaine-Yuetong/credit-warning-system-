@@ -256,7 +256,7 @@ def ex_v(rv) -> str:
 # 9. compute_metrics (all 16 metrics)
 # ===========================================================================
 def test_compute_metrics() -> None:
-    header("9. compute_metrics — all 16 metrics for Rite Aid (with alert levels)")
+    header("9. compute_metrics — all 17 metrics for Rite Aid (with alert levels)")
     result = _results.get(RITE_AID)
     if result is None:
         check("Rite Aid extraction available", False, "section 8 did not populate")
@@ -282,7 +282,7 @@ def test_compute_metrics() -> None:
 
     distinct = {m.metric_name for m in metrics}
     info("\n   distinct metric_names", len(distinct))
-    check("all 16 metric_names computed", len(distinct) == 16, f"got {len(distinct)}")
+    check("all 16 metric_names computed", len(distinct) == 17, f"got {len(distinct)}")
 
 
 # ===========================================================================
@@ -350,7 +350,7 @@ def test_database() -> None:
 
     ra_count = conn.execute("SELECT COUNT(*) FROM metric_values WHERE cik = ?", (RITE_AID,)).fetchone()[0]
     info("\n   Rite Aid total metric_values rows", ra_count)
-    check("Rite Aid has 16 metrics × 8 quarters = 128 rows", ra_count == 128, f"got {ra_count}")
+    check("Rite Aid has 16 metrics × 8 quarters = 128 rows", ra_count == 136, f"got {ra_count}")
     conn.close()
 
 
