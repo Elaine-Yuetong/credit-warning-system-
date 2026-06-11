@@ -206,6 +206,7 @@ The mentor's reference repo ([Khootz/Credit_Warning](https://github.com/Khootz/C
 - **Sector benchmarks** for EBITDA margin and revenue trend require external data — not yet wired.
 - **Backtest case library** contains 6 distressed and 6 healthy issuers — sufficient for baseline calibration but not for statistically robust threshold validation. Expanding to 20+ cases is planned after the full LLM layer is implemented.
 - **Footnote locator** uses keyword-density scoring and covers standard SEC filing heading variants. Non-standard or minimally-labelled footnotes may return found=False and receive no LLM extraction. A structural fallback (numbered note boundary detection) is planned for Phase 4.
+- **Known Limitations** PP&E footnotes structured by geography (e.g. Apple) rather than asset type cannot be decomposed — blanket 30–60% haircut applied to total net PP&E.
 
 ---
 
