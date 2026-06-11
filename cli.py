@@ -35,6 +35,8 @@ DISPLAY_ROWS = [
     ("interest_coverage", "Interest Coverage", "x"),
     ("free_cash_flow", "FCF ($M)", "m"),
     ("fcf_margin", "FCF Margin", "pct"),
+    ("moody_adjusted_fcf", "Moody FCF ($M)", "m"),
+    ("rcf_net_debt", "RCF/Net Debt", "x"),
     ("ocf_ebitda_conversion", "OCF/EBITDA Conv", "x"),
     ("current_ratio", "Current Ratio", "x"),
     ("quick_ratio", "Quick Ratio", "x"),

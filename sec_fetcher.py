@@ -132,6 +132,16 @@ _INTANGIBLES_SIGNAL_TERMS = [
     "trademark", "developed technology", "capitalized software", "software",
     "amortization", "finite-lived", "indefinite-lived", "intangible",
 ]
+# MD&A capital-expenditure discussion (Group 7a) — maintenance vs growth capex split.
+_MDA_CAPEX_HEADINGS = [
+    r"liquidity and capital resources",
+    r"capital expenditures",
+    r"capital resources",
+]
+_MDA_CAPEX_SIGNAL_TERMS = [
+    "maintenance capex", "sustaining capex", "replacement capex", "growth capex",
+    "expansion capex", "capital expenditures", "maintenance", "sustaining",
+]
 
 
 @dataclass
@@ -171,6 +181,8 @@ class DebtFootnote:
     ppe_text: str = ""
     inventory_text: str = ""
     intangibles_text: str = ""
+    # Capex-split source (Group 7a): MD&A Liquidity & Capital Resources discussion.
+    mda_capex_text: str = ""
 
 
 # --------------------------------------------------------------------------------------
@@ -364,6 +376,14 @@ def locate_intangibles_note(text: str) -> tuple[bool, Optional[str], int, int, d
     return _locate_section(text, _INTANGIBLES_HEADINGS, _INTANGIBLES_SIGNAL_TERMS, _ASSET_WINDOW, min_distinct=2)
 
 
+def locate_mda_capex_section(text: str) -> tuple[bool, Optional[str], int, int, dict]:
+    """Find the MD&A capital-expenditures discussion (Liquidity and Capital Resources). 15k window
+    — used by Group 7a to detect a disclosed maintenance vs growth capex split. min_distinct=1:
+    the heading ("liquidity and capital resources") is a strong, specific anchor, so a single capex
+    signal term suffices — companies that disclose a split may use sparse keyword density."""
+    return _locate_section(text, _MDA_CAPEX_HEADINGS, _MDA_CAPEX_SIGNAL_TERMS, _ASSET_WINDOW, min_distinct=1)
+
+
 # --------------------------------------------------------------------------------------
 # Orchestration
 # --------------------------------------------------------------------------------------
@@ -392,6 +412,7 @@ def get_debt_footnote(client: SecClient, cik: str, form: str = "10-K") -> Option
     pp_found, _pp_h, pp_s, pp_e, _pp_hits = locate_ppe_note(text)
     iv_found, _iv_h, iv_s, iv_e, _iv_hits = locate_inventory_note(text)
     it_found, _it_h, it_s, it_e, _it_hits = locate_intangibles_note(text)
+    mc_found, _mc_h, mc_s, mc_e, _mc_hits = locate_mda_capex_section(text)
     return DebtFootnote(
         cik=cik10, form=form, form_type=form, accession=ref.accession, source_url=url,
         found=found, heading=heading, char_start=start, char_end=end,
@@ -404,6 +425,7 @@ def get_debt_footnote(client: SecClient, cik: str, form: str = "10-K") -> Option
         ppe_text=text[pp_s:pp_e] if pp_found else "",
         inventory_text=text[iv_s:iv_e] if iv_found else "",
         intangibles_text=text[it_s:it_e] if it_found else "",
+        mda_capex_text=text[mc_s:mc_e] if mc_found else "",
     )
 
 

@@ -271,6 +271,23 @@ CONCEPTS: dict[str, Concept] = {
             "PaymentsToAcquireOtherPropertyPlantAndEquipment": "other PP&E tag used — verify completeness",
         },
     ),
+    # Moody's Formula-2 FCF inputs (Group 7a). All duration items on the cash-flow statement.
+    "pension_contributions": Concept(
+        "pension_contributions", "duration", "first",
+        ("PensionContributions", "PaymentsForPensionAndOtherPostretirementBenefits"),
+    ),
+    "dividends_common": Concept(
+        "dividends_common", "duration", "first",
+        ("PaymentsOfDividendsCommonStock", "PaymentsOfDividends"),
+    ),
+    "dividends_preferred": Concept(
+        "dividends_preferred", "duration", "first",
+        ("PaymentsOfDividendsPreferredStockAndPreferenceStock",),
+    ),
+    "dividends_minority": Concept(
+        "dividends_minority", "duration", "first",
+        ("PaymentsOfDividendsMinorityInterest",),
+    ),
     "revenue": Concept(
         "revenue", "duration", "first",
         ("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax",

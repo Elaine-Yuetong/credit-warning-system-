@@ -536,6 +536,113 @@ def _free_cash_flow(p: PeriodInputs, institution_type: str) -> list[MetricResult
     return results
 
 
+def _moody_fcf_metrics(p: PeriodInputs, institution_type: str,
+                       llm_split: Optional[dict] = None) -> list[MetricResult]:
+    """Moody's-Style Adjusted FCF + RCF/Net Debt (FREE_CASH_FLOW.md Formula 2).
+
+    Adjusted FCF = OCF + pension contributions added back − maintenance capex − dividends paid.
+    RCF         = OCF + pension contributions added back − dividends paid   (excludes capex).
+    Maintenance capex uses the company-disclosed MD&A split when an LLM row says so, else the
+    D&A proxy (Moody's convention), else falls back to total capex.
+    """
+    base = dict(period_end=p.period_end, form_type=p.form_type, filing_date=p.filing_date)
+    fi_flag = [FINANCIAL_FCF_FLAG] if institution_type == "financial" else []
+
+    ocf_rv = p.quarterly.get("operating_cash_flow")
+    ocf = _v(ocf_rv)
+    pension = _v(p.quarterly.get("pension_contributions"))
+    capex = _v(p.quarterly.get("capex"))
+    da = _v(p.quarterly.get("dep_amort"))
+    div_c = _v(p.quarterly.get("dividends_common"))
+    div_p = _v(p.quarterly.get("dividends_preferred"))
+    div_m = _v(p.quarterly.get("dividends_minority"))
+
+    flags: list[str] = list(fi_flag)
+    src: dict[str, str] = {}
+    if ocf_rv is not None and ocf_rv.tags:
+        src["operating_cash_flow"] = ",".join(ocf_rv.tags)
+
+    # Pension addback (Moody's treats pension funding as financing). Tags are positive amounts.
+    pension_addback = abs(pension) if pension is not None else 0.0
+    if pension is None:
+        flags.append("pension contributions not found — assumed zero in Moody's addback")
+
+    # Dividends total = common + preferred + minority (all positive cash outflows).
+    div_parts = [d for d in (div_c, div_p, div_m) if d is not None]
+    dividends_total = sum(abs(d) for d in div_parts)
+    if not div_parts:
+        flags.append("no dividend tags found — dividends assumed zero")
+
+    # Maintenance capex: disclosed split > D&A proxy > total-capex fallback. (LLM amounts millions.)
+    maint_capex: Optional[float] = None
+    maint_source: Optional[str] = None
+    if llm_split and llm_split.get("split_disclosed") and llm_split.get("maintenance_capex") is not None:
+        maint_capex = abs(llm_split["maintenance_capex"]) * _M
+        maint_source = "disclosed"
+        flags.append("maintenance capex from disclosed MD&A split (LLM)")
+    elif da is not None:
+        maint_capex = abs(da)
+        maint_source = "da_proxy"
+        flags.append("maintenance capex proxied by D&A per Moody's convention — actual split not "
+                     "disclosed; growth capex not separately identified")
+    elif capex is not None:
+        maint_capex = abs(capex)
+        maint_source = "total_capex"
+        flags.append("maintenance capex fallback to total capex — D&A unavailable")
+
+    # --- moody_adjusted_fcf (millions USD) ---
+    if ocf is None:
+        moody_res = MetricResult(metric_name="moody_adjusted_fcf", value=None,
+                                 value_unit="millions_usd", flags=flags + ["OCF unavailable — Moody FCF null"],
+                                 source_tags=src, audit_log={}, extraction_path="none", **base)
+        adj_fcf = None
+    elif maint_capex is None:
+        moody_res = MetricResult(metric_name="moody_adjusted_fcf", value=None,
+                                 value_unit="millions_usd",
+                                 flags=flags + ["maintenance capex unavailable (no D&A, no capex) — Moody FCF null"],
+                                 source_tags=src, audit_log={}, extraction_path="none", **base)
+        adj_fcf = None
+    else:
+        adj_fcf = ocf + pension_addback - maint_capex - dividends_total
+        moody_res = MetricResult(
+            metric_name="moody_adjusted_fcf", value=adj_fcf / 1e6, value_unit="millions_usd",
+            flags=flags, source_tags=dict(src),
+            audit_log={"ocf": ocf, "pension_addback": pension_addback, "maintenance_capex": maint_capex,
+                       "maintenance_capex_source": maint_source, "dividends_total": dividends_total,
+                       "moody_adjusted_fcf": adj_fcf},
+            extraction_path="derived", extra={"moody_adjusted_fcf": adj_fcf}, **base)
+
+    # --- rcf_net_debt (ratio): RCF / Net Debt ---
+    net, total, ndsrc, ndflags, _level = _net_debt(p)
+    rcf_flags = list(fi_flag)
+    rcf_src = dict(src)
+    rcf_src.update(ndsrc)
+    if ocf is None:
+        rcf_res = MetricResult(metric_name="rcf_net_debt", value=None, value_unit="ratio",
+                               flags=rcf_flags + ["OCF unavailable — RCF/Net Debt null"],
+                               source_tags=rcf_src, audit_log={}, extraction_path="none", **base)
+    elif net is None:
+        rcf_res = MetricResult(metric_name="rcf_net_debt", value=None, value_unit="ratio",
+                               flags=rcf_flags + ndflags + ["Net Debt unavailable — RCF/Net Debt null"],
+                               source_tags=rcf_src, audit_log={}, extraction_path="none", **base)
+    elif net <= 0:
+        rcf_val = ocf + pension_addback - dividends_total
+        rcf_res = MetricResult(metric_name="rcf_net_debt", value=None, value_unit="ratio",
+                               flags=rcf_flags + ["net cash position (Net Debt <= 0) — RCF/Net Debt not meaningful"],
+                               source_tags=rcf_src, audit_log={"rcf": rcf_val, "net_debt": net},
+                               extraction_path="none", **base)
+    else:
+        rcf_val = ocf + pension_addback - dividends_total
+        rcf_res = MetricResult(
+            metric_name="rcf_net_debt", value=rcf_val / net, value_unit="ratio",
+            flags=rcf_flags, source_tags=rcf_src,
+            audit_log={"rcf": rcf_val, "ocf": ocf, "pension_addback": pension_addback,
+                       "dividends_total": dividends_total, "net_debt": net, "total_debt": total},
+            extraction_path="derived", extra={"rcf": rcf_val, "net_debt": net}, **base)
+
+    return [moody_res, rcf_res]
+
+
 def _current_ratio(p: PeriodInputs) -> MetricResult:
     ca_rv = p.instant.get("current_assets")
     cl_rv = p.instant.get("current_liabilities")
@@ -875,6 +982,26 @@ def _load_llm_asset_composition(cik: str) -> Optional[dict]:
         return None
 
 
+def _load_llm_capex_split(cik: str) -> Optional[dict]:
+    """Most recent llm_capex_split row for an issuer (Group 7a), or None / missing-table."""
+    import sqlite3
+    try:
+        from db import DB_PATH
+    except Exception:
+        DB_PATH = "credit_warning.db"
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM llm_capex_split WHERE cik = ? ORDER BY extracted_at DESC LIMIT 1",
+            (cik,),
+        ).fetchone()
+        conn.close()
+        return dict(row) if row else None
+    except sqlite3.OperationalError:
+        return None
+
+
 def _maturity_coverage(p: PeriodInputs, llm: Optional[dict] = None) -> MetricResult:
     cur_ltd = _v(p.instant.get("current_ltd"))
     st = _v(p.instant.get("short_term_debt"))
@@ -1066,11 +1193,14 @@ _FI_FLAG_NO_ALERT = {
                                "liquidation haircuts not applicable",
     "liquidation_asset_coverage": "financial institution — liquidation haircuts not applicable "
                                   "without bank-specific asset quality data",
+    "rcf_net_debt": "financial institution — RCF/Net Debt not applicable; regulatory capital "
+                    "ratios (CET1, Tier 1) govern; use for trend monitoring only",
 }
 # Computed-with-flag, alerts retained.
 _FI_FLAG = {
     "free_cash_flow": FINANCIAL_FCF_FLAG,
     "fcf_margin": FINANCIAL_FCF_FLAG,
+    "moody_adjusted_fcf": FINANCIAL_FCF_FLAG,
     "revenue_yoy_growth": "financial institution — revenue = net interest income + non-interest "
                           "income; GAAP revenue line used as proxy; verify composition",
 }
@@ -1112,6 +1242,7 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
     llm = _load_llm_extraction(result.metadata.cik)
     llm_lp = _load_llm_loss_provisions(result.metadata.cik)
     llm_ac = _load_llm_asset_composition(result.metadata.cik)
+    llm_cs = _load_llm_capex_split(result.metadata.cik)
 
     out: list[MetricResult] = []
     for i, p in enumerate(periods):
@@ -1122,6 +1253,7 @@ def compute_metrics(result: ExtractionResult, institution_type: str) -> list[Met
         out.append(leverage)
         out.append(coverage)
         out.extend(_free_cash_flow(p, institution_type))
+        out.extend(_moody_fcf_metrics(p, institution_type, llm_cs))
         out.append(_current_ratio(p))
         out.append(_quick_ratio(p))
         out.append(_ebitda_margin(p))

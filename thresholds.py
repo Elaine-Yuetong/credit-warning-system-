@@ -255,6 +255,19 @@ def _fcf_alert(m: MetricResult, history: list[MetricResult]) -> Optional[str]:
     return None
 
 
+def _rcf_net_debt_alert(m: MetricResult) -> Optional[str]:
+    """RCF/Net Debt alert (Moody's Formula-2 companion ratio). Flag < 5%, Stress < 2%, Critical < 0%."""
+    if m.value is None:
+        return None
+    if m.value < 0.0:
+        return "Critical"
+    if m.value < 0.02:
+        return "Stress"
+    if m.value < 0.05:
+        return "Flag"
+    return None
+
+
 def _conversion_alert(m: MetricResult, history: list[MetricResult]) -> Optional[str]:
     """ocf_ebitda_conversion alerts (FREE_CASH_FLOW.md Input 5)."""
     if m.value is None:
@@ -481,6 +494,10 @@ def assign_alerts(metrics: list[MetricResult], cls: Classification,
                 m.alert_level = _quick_alert(m, cls.liquidity_sector)
             elif name == "free_cash_flow":
                 m.alert_level = _fcf_alert(m, history)
+            elif name == "moody_adjusted_fcf":
+                m.alert_level = _fcf_alert(m, history)  # same bands as free_cash_flow
+            elif name == "rcf_net_debt":
+                m.alert_level = _rcf_net_debt_alert(m)
             elif name == "ocf_ebitda_conversion":
                 m.alert_level = _conversion_alert(m, history)
             elif name == "ebitda_margin":

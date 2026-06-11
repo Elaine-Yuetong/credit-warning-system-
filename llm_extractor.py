@@ -695,6 +695,112 @@ def save_asset_composition_to_db(result: AssetCompositionExtraction, cik: str, a
     conn.close()
 
 
+# ======================================================================================
+# Group 7a — Maintenance vs Growth Capex Split (FREE_CASH_FLOW.md Formula 2, Item 2b)
+# ======================================================================================
+
+class CapexSplitExtraction(BaseModel):
+    """Maintenance vs growth capex split disclosed in MD&A (USD millions)."""
+    split_disclosed: bool = Field(
+        description="True only if the filing explicitly distinguishes maintenance/sustaining "
+                    "capex from growth/expansion capex. False if it reports a single capex figure.")
+    maintenance_capex: Optional[float] = Field(
+        default=None, description="Maintenance / sustaining / replacement capex, USD millions")
+    growth_capex: Optional[float] = Field(
+        default=None, description="Growth / expansion capex, USD millions")
+    total_capex_disclosed: Optional[float] = Field(
+        default=None, description="Total capex stated in MD&A, USD millions (for sum verification)")
+    notes: Optional[str] = None
+
+
+CAPEX_SPLIT_SYSTEM_PROMPT = (
+    "You are a credit analyst reading the MD&A 'Liquidity and Capital Resources' / capital-"
+    "expenditures discussion of an SEC filing. Your only task is to determine whether the company "
+    "discloses a split between MAINTENANCE capex (also called sustaining, replacement, or "
+    "keep-the-lights-on capex — spending to keep existing assets functioning) and GROWTH capex "
+    "(also called expansion capex — spending to add capacity). All amounts in USD millions.\n\n"
+    "Rules:\n"
+    "- split_disclosed = true ONLY if the text explicitly separates maintenance/sustaining capex "
+    "from growth/expansion capex with distinct amounts or clearly attributable language. A single "
+    "total capex figure with no breakdown is NOT a split — set split_disclosed = false.\n"
+    "- maintenance_capex / growth_capex: the disclosed amounts if split_disclosed is true; null "
+    "otherwise. total_capex_disclosed: the total capex figure stated in MD&A if present.\n"
+    "- Do NOT invent or estimate a split. Do NOT apply the D&A proxy — that is the system's job "
+    "when no split is disclosed. If not disclosed, set split_disclosed=false and leave amounts null, "
+    "with notes='maintenance vs growth capex split not disclosed'."
+)
+
+CAPEX_SPLIT_JSON_INSTRUCTION = (
+    "\n\nRespond with ONLY a single JSON object and nothing else — no prose, no markdown fences. "
+    "The JSON object must conform to this JSON Schema:\n"
+    + json.dumps(CapexSplitExtraction.model_json_schema())
+)
+
+
+def extract_capex_split(source: DebtFootnote | str, *,
+                        client: Optional["anthropic.Anthropic"] = None,
+                        model: str = DEFAULT_MODEL) -> Optional[CapexSplitExtraction]:
+    """Structured LLM extraction of the maintenance vs growth capex split from MD&A. Persists to
+    llm_capex_split when given a DebtFootnote (best-effort)."""
+    text = (source.mda_capex_text if isinstance(source, DebtFootnote) else source)
+    if not text or not text.strip():
+        return None
+
+    if client is None:
+        client_kwargs: dict = {}
+        base_url = os.environ.get("ANTHROPIC_BASE_URL")
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        client = anthropic.Anthropic(**client_kwargs)
+
+    # thinking parameter omitted — not supported by relay services (APIYI)
+    response = client.messages.create(
+        model=model,
+        max_tokens=MAX_TOKENS,
+        system=CAPEX_SPLIT_SYSTEM_PROMPT + CAPEX_SPLIT_JSON_INSTRUCTION,
+        messages=[{
+            "role": "user",
+            "content": "Determine the maintenance vs growth capex split from the following MD&A "
+                       "capital-expenditures discussion:\n\n" + text,
+        }],
+    )
+    raw = "".join(getattr(b, "text", "") for b in response.content if hasattr(b, "text"))
+    data = _extract_json(raw)
+    if data is None:
+        return None
+    try:
+        result = CapexSplitExtraction.model_validate(data)
+    except ValidationError:
+        return None
+
+    if isinstance(source, DebtFootnote):
+        try:
+            save_capex_split_to_db(result, source.cik, source.accession, source.form_type, model)
+        except Exception as exc:  # pragma: no cover
+            print(f"warning: could not persist capex split to SQLite: {exc}", file=sys.stderr)
+    return result
+
+
+def save_capex_split_to_db(result: CapexSplitExtraction, cik: str, accession: Optional[str],
+                           form_type: Optional[str], model: str, db_path: Optional[str] = None) -> None:
+    """Write one llm_capex_split row (ON CONFLICT REPLACE)."""
+    import db as _db  # lazy import to avoid any import cycle
+    conn = _db.connect(db_path or _db.DB_PATH)
+    conn.execute(
+        """
+        INSERT INTO llm_capex_split (
+            cik, accession, form_type, maintenance_capex, growth_capex, total_capex_disclosed,
+            split_disclosed, extracted_at, model_used)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (cik, accession, form_type, result.maintenance_capex, result.growth_capex,
+         result.total_capex_disclosed, 1 if result.split_disclosed else 0,
+         datetime.now(timezone.utc).isoformat(), model),
+    )
+    conn.commit()
+    conn.close()
+
+
 # --------------------------------------------------------------------------------------
 # Manual test — Rite Aid (requires ANTHROPIC_API_KEY)
 # --------------------------------------------------------------------------------------
@@ -801,4 +907,19 @@ if __name__ == "__main__":
         print(f"  Collateral: type={ac.collateral_type}")
         if ac.collateral_description:
             print(f"    “{ac.collateral_description[:200]}”")
+        print("═" * 78)
+
+    # ---- Group 7a: Maintenance vs growth capex split ----
+    print(f"\nExtracting capex split — MD&A capex section {len(footnote.mda_capex_text):,} chars …")
+    cs = extract_capex_split(footnote)
+    if cs is None:
+        print("No capex-split extraction produced (no MD&A capex text or parse failed).")
+    else:
+        print("═" * 78)
+        print("  EXTRACTED CAPEX SPLIT (Formula 2, Item 2b)")
+        print("═" * 78)
+        print(f"  split_disclosed={cs.split_disclosed}  maintenance={cs.maintenance_capex}  "
+              f"growth={cs.growth_capex}  total_disclosed={cs.total_capex_disclosed}")
+        if cs.notes:
+            print(f"  NOTES: {cs.notes}")
         print("═" * 78)

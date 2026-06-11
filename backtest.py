@@ -60,9 +60,13 @@ FP_RATE_TARGET = 0.20
 class Case:
     name: str
     cik: str
-    event_date: Optional[str]            # ISO; None for healthy controls
+    event_date: Optional[str]            # ISO; None for healthy controls + stressed survivors
     name_contains: tuple[str, ...]       # accepted entityName substrings (upper-cased)
     note: str = ""
+    # Stressed-survivor window (ISO). The system should flag Stress+ *during* this period and
+    # be clean before and after — the early-warning test for names that did NOT go bankrupt.
+    stress_start: Optional[str] = None
+    stress_end: Optional[str] = None
 
 
 DISTRESSED: list[Case] = [
@@ -73,6 +77,14 @@ DISTRESSED: list[Case] = [
     Case("Revlon", "0000887921", "2022-06-15", ("REVLON",)),
     Case("Party City", "0001592058", "2023-01-17", ("PARTY CITY", "PGHC", "PC NEXTCO")),
     Case("Yellow Corp", "0000716006", "2023-08-06", ("YELLOW", "YRC")),
+    Case("iHeartMedia", "0001400891", "2018-03-14", ("IHEARTMEDIA", "IHEART"),
+         "Chapter 11 March 2018"),
+    Case("Chesapeake Energy", "0000895126", "2020-06-28", ("CHESAPEAKE", "EXPAND ENERGY"),
+         "Chapter 11 June 2020; CIK renamed to Expand Energy post-emergence"),
+    Case("JCPenney", "0001166126", "2020-05-15", ("PENNEY", "JC PENNEY", "OLD COPPER"),
+         "Chapter 11 May 2020; CIK renamed to Old Copper Company post-bankruptcy"),
+    Case("Hertz", "0001657853", "2020-05-22", ("HERTZ",), "Chapter 11 May 2020 (Hertz Global Holdings)"),
+    Case("Sears Holdings", "0001310067", "2018-10-15", ("SEARS",), "Chapter 11 October 2018"),
 ]
 
 HEALTHY: list[Case] = [
@@ -85,6 +97,20 @@ HEALTHY: list[Case] = [
          "transaction, not credit deterioration"),
     Case("Procter & Gamble", "0000080424", None, ("PROCTER",)),
     Case("Costco", "0000909832", None, ("COSTCO",)),
+]
+
+# Names that hit significant credit stress but did NOT go bankrupt. The early-warning test:
+# flag Stress+ during the stress window, clean before and after. (No event_date — these
+# survived; correctness is measured against the stress window, not a bankruptcy date.)
+STRESSED_SURVIVOR: list[Case] = [
+    Case("Macy's", "0000794367", None, ("MACY",), "retail stress 2019–2020, survived",
+         stress_start="2019-01-01", stress_end="2020-12-31"),
+    Case("Ford Motor", "0000037996", None, ("FORD MOTOR",),
+         "downgraded to junk March 2020, recovered",
+         stress_start="2020-01-01", stress_end="2020-12-31"),
+    Case("Occidental Petroleum", "0000797468", None, ("OCCIDENTAL",),
+         "severe oil-price stress 2020, recovered",
+         stress_start="2020-01-01", stress_end="2020-12-31"),
 ]
 
 
@@ -174,6 +200,7 @@ class CaseResult:
     case: Case
     status: str                          # caught | missed | flagged_late | clean |
                                          # false_positive | annotated |
+                                         # detected_clean | detected_noisy | missed_stress |
                                          # insufficient_history | unresolved
     resolved_name: Optional[str] = None
     first_stress_date: Optional[str] = None      # first >=2-metric Stress+ (primary signal)
@@ -186,6 +213,13 @@ class CaseResult:
     single_fp_dates: list[str] = field(default_factory=list) # single-metric Stress+ (secondary)
     timeline: list[ScorePoint] = field(default_factory=list)
     note: str = ""
+    # Stressed-survivor fields: confirmed (>=2-metric Stress+) dates by temporal bucket.
+    stress_detected: bool = False
+    clean_before: bool = False
+    clean_after: bool = False
+    during_dates: list[str] = field(default_factory=list)
+    before_dates: list[str] = field(default_factory=list)
+    after_dates: list[str] = field(default_factory=list)
 
 
 def _confirmed(sp: ScorePoint) -> bool:
@@ -270,6 +304,62 @@ def _run_healthy(case: Case, client: SecClient) -> CaseResult:
                       note=case.note)
 
 
+def _run_stressed_survivor(case: Case, client: SecClient) -> CaseResult:
+    """Early-warning test for names that hit stress but survived: did the system confirm
+    Stress+ *during* the stress window, and stay clean before and after?"""
+    ok, name = _validate(case, client)
+    if not ok:
+        return CaseResult(case, "unresolved", resolved_name=name,
+                          note="CIK did not resolve to expected issuer or lacks 10-K history")
+
+    s_start, s_end = _d(case.stress_start), _d(case.stress_end)  # type: ignore[arg-type]
+    window_start = _add_months(s_start, -24)                      # 2 yrs before stress
+    window_end = min(_add_months(s_end, 24), date.today())        # 2 yrs after stress, capped today
+
+    # History sufficiency: how many quarters were knowable by the end of the stress window?
+    at_end = extract(case.cik, client=client, as_of=case.stress_end)
+    n_pre = len(at_end.periods) if at_end else 0
+    if n_pre < MIN_PREEVENT_QUARTERS:
+        return CaseResult(case, "insufficient_history", resolved_name=name,
+                          n_preevent_quarters=n_pre,
+                          note=f"only {n_pre} quarters knowable by stress end (< {MIN_PREEVENT_QUARTERS})")
+
+    dates = _quarterly_dates(window_start, window_end)
+    timeline = [sp for d in dates if (sp := _score_at(case.cik, d, client)) is not None]
+
+    def _bucket(iso: str) -> str:
+        d = _d(iso)
+        if d < s_start:
+            return "before"
+        if d <= s_end:
+            return "during"
+        return "after"
+
+    before_dates = [sp.as_of for sp in timeline if _bucket(sp.as_of) == "before" and _confirmed(sp)]
+    during_dates = [sp.as_of for sp in timeline if _bucket(sp.as_of) == "during" and _confirmed(sp)]
+    after_dates = [sp.as_of for sp in timeline if _bucket(sp.as_of) == "after" and _confirmed(sp)]
+
+    stress_detected = len(during_dates) > 0
+    clean_before = len(before_dates) == 0
+    clean_after = len(after_dates) == 0
+    peak = max(timeline, key=lambda s: s.ordinal, default=None)
+
+    if not stress_detected:
+        status = "missed_stress"
+    elif clean_before and clean_after:
+        status = "detected_clean"      # ideal: flagged during stress, clean either side
+    else:
+        status = "detected_noisy"      # detected, but also fired outside the stress window
+
+    return CaseResult(case, status, resolved_name=name, timeline=timeline, n_preevent_quarters=n_pre,
+                      stress_detected=stress_detected, clean_before=clean_before, clean_after=clean_after,
+                      during_dates=during_dates, before_dates=before_dates, after_dates=after_dates,
+                      first_stress_date=during_dates[0] if during_dates else None,
+                      peak_level=peak.level if peak else None,
+                      peak_stress_metrics=peak.stress_metrics if peak else [],
+                      note=case.note)
+
+
 # --------------------------------------------------------------------------------------
 # Reporting
 # --------------------------------------------------------------------------------------
@@ -295,9 +385,15 @@ _CTRL_STATUS = {
     "clean": ("✅", "CLEAN"), "annotated": ("⚠️", "ANNOTATED"),
     "false_positive": ("❌", "FALSE POSITIVE"), "unresolved": ("—", "UNRESOLVED"),
 }
+_SURVIVOR_STATUS = {
+    "detected_clean": ("✅", "DETECTED+CLEAN"), "detected_noisy": ("⚠️", "DETECTED (NOISY)"),
+    "missed_stress": ("❌", "MISSED STRESS"),
+    "insufficient_history": ("—", "INSUFFICIENT HIST"), "unresolved": ("—", "UNRESOLVED"),
+}
 
 
-def _print_report(distressed: list[CaseResult], healthy: list[CaseResult]) -> bool:
+def _print_report(distressed: list[CaseResult], healthy: list[CaseResult],
+                  survivors: list[CaseResult]) -> bool:
     line = "═" * 84
     print("\n" + line)
     print("  CREDIT WARNING SYSTEM — PHASE 3 BACKTEST  (point-in-time, no look-ahead)")
@@ -348,6 +444,31 @@ def _print_report(distressed: list[CaseResult], healthy: list[CaseResult]) -> bo
     fired = [r for r in resolved if r.status in ("annotated", "false_positive")]
     fp_rate = (len(fired) / len(resolved)) if resolved else 0.0
 
+    # ---- stressed-survivor scorecard (early-warning test) ----
+    print("\nSTRESSED SURVIVORS  (flag Stress+ during the stress window; clean before & after)")
+    for r in survivors:
+        icon, label = _SURVIVOR_STATUS.get(r.status, ("—", r.status.upper()))
+        win = f"{_q_label(r.case.stress_start)}→{_q_label(r.case.stress_end)}"
+        if r.status in ("detected_clean", "detected_noisy"):
+            bits = [f"flagged {len(r.during_dates)} qtr(s) during stress"]
+            if not r.clean_before:
+                bits.append(f"{len(r.before_dates)} pre-stress")
+            if not r.clean_after:
+                bits.append(f"{len(r.after_dates)} post-stress")
+            detail = f"{win}: " + "; ".join(bits) + f"   peak {r.peak_level or '—'}"
+        elif r.status == "missed_stress":
+            detail = f"{win}: never confirmed Stress+ during window   peak {r.peak_level or '—'}"
+        else:
+            detail = r.note or "—"
+        print(f"  {icon} {label:<18} {r.case.name:<22} {detail}")
+
+    surv_scoreable = [r for r in survivors
+                      if r.status in ("detected_clean", "detected_noisy", "missed_stress")]
+    detected = [r for r in surv_scoreable if r.stress_detected]
+    detected_clean = [r for r in surv_scoreable if r.status == "detected_clean"]
+    stress_detect_rate = (len(detected) / len(surv_scoreable)) if surv_scoreable else 0.0
+    surv_excluded = [r for r in survivors if r.status in ("insufficient_history", "unresolved")]
+
     # ---- secondary view (single-metric rule, pre-confirmation) ----
     single_caught = sum(1 for r in scoreable if r.single_first_date
                         and r.case.event_date
@@ -368,9 +489,14 @@ def _print_report(distressed: list[CaseResult], healthy: list[CaseResult]) -> bo
     print(f"  SCORECARD: {len(caught)}/{len(scoreable)} distressed caught ≥{LEAD_QUARTERS_REQUIRED} quarters early"
           f"  ·  catch rate {catch_rate:.0%}  ·  FP rate {fp_rate:.0%}"
           f"  ·  median lead {_months(median_lead)}")
+    print(f"             stress detection {len(detected)}/{len(surv_scoreable)} survivors flagged during stress"
+          f"  ·  rate {stress_detect_rate:.0%}"
+          f"  ·  {len(detected_clean)}/{len(surv_scoreable)} also clean before & after")
     if excluded:
         for r in excluded:
             print(f"             (excluded: {r.case.name} — {r.status}: {r.note})")
+    for r in surv_excluded:
+        print(f"             (survivor excluded: {r.case.name} — {r.status}: {r.note})")
     print(f"  TARGETS:   catch ≥{CATCH_RATE_TARGET:.0%} {'✅' if catch_pass else '❌'}"
           f"   ·  FP ≤{FP_RATE_TARGET:.0%} {'✅' if fp_pass else '❌'}"
           f"   ·  median lead ≥{LEAD_QUARTERS_REQUIRED}Q {'✅' if lead_pass else '❌'}")
@@ -379,22 +505,28 @@ def _print_report(distressed: list[CaseResult], healthy: list[CaseResult]) -> bo
     return overall
 
 
-def _to_json(distressed: list[CaseResult], healthy: list[CaseResult]) -> dict:
+def _to_json(distressed: list[CaseResult], healthy: list[CaseResult],
+             survivors: list[CaseResult]) -> dict:
     def case_dict(r: CaseResult) -> dict:
         return {
             "name": r.case.name, "cik": r.case.cik, "event_date": r.case.event_date,
+            "stress_start": r.case.stress_start, "stress_end": r.case.stress_end,
             "resolved_name": r.resolved_name, "status": r.status,
             "first_stress_date": r.first_stress_date, "lead_days": r.lead_days,
             "peak_level": r.peak_level, "peak_stress_metrics": r.peak_stress_metrics,
             "single_metric_first_date": r.single_first_date,
             "n_preevent_quarters": r.n_preevent_quarters, "fp_dates": r.fp_dates,
             "single_metric_fp_dates": r.single_fp_dates, "note": r.note,
+            "stress_detected": r.stress_detected, "clean_before": r.clean_before,
+            "clean_after": r.clean_after, "during_dates": r.during_dates,
+            "before_dates": r.before_dates, "after_dates": r.after_dates,
             "timeline": [{"as_of": s.as_of, "level": s.level, "ordinal": s.ordinal,
                           "stress_metrics": s.stress_metrics, "flag_count": s.flag_count,
                           "latest_period": s.latest_period} for s in r.timeline],
         }
     return {"distressed": [case_dict(r) for r in distressed],
-            "healthy": [case_dict(r) for r in healthy]}
+            "healthy": [case_dict(r) for r in healthy],
+            "stressed_survivors": [case_dict(r) for r in survivors]}
 
 
 # --------------------------------------------------------------------------------------
@@ -420,11 +552,16 @@ def main(argv: list[str]) -> int:
         print(f"  · scoring {case.name} (control) …")
         healthy_results.append(_run_healthy(case, client))
 
-    overall = _print_report(distressed_results, healthy_results)
+    survivor_results: list[CaseResult] = []
+    for case in STRESSED_SURVIVOR:
+        print(f"  · scoring {case.name} (stressed survivor) …")
+        survivor_results.append(_run_stressed_survivor(case, client))
+
+    overall = _print_report(distressed_results, healthy_results, survivor_results)
 
     if json_path:
         with open(json_path, "w", encoding="utf-8") as fh:
-            json.dump(_to_json(distressed_results, healthy_results), fh, indent=2)
+            json.dump(_to_json(distressed_results, healthy_results, survivor_results), fh, indent=2)
         print(f"\nJSON report written to {json_path}")
 
     return 0 if overall else 1

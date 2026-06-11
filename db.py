@@ -184,6 +184,23 @@ CREATE TABLE IF NOT EXISTS llm_asset_composition (
     model_used                TEXT,
     UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
 );
+
+-- LLM-extracted maintenance vs growth capex split (Group 7a / FREE_CASH_FLOW.md Formula 2).
+-- Read by metrics.py to replace the D&A maintenance-capex proxy when split_disclosed=1.
+-- Amounts in USD millions.
+CREATE TABLE IF NOT EXISTS llm_capex_split (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    cik                    TEXT NOT NULL,
+    accession              TEXT,
+    form_type              TEXT,
+    maintenance_capex      REAL,
+    growth_capex           REAL,
+    total_capex_disclosed  REAL,
+    split_disclosed        INTEGER,   -- 1/0 — whether the filing actually discloses the split
+    extracted_at           TEXT NOT NULL,
+    model_used             TEXT,
+    UNIQUE (cik, accession, form_type) ON CONFLICT REPLACE
+);
 """
 
 
