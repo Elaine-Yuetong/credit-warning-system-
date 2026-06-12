@@ -117,6 +117,54 @@ def load_issuers():
     return issuers, units
 
 
+def load_llm():
+    """Per-issuer LLM footnote extraction (covenants / maturities / revolver / compliance),
+    parsed from llm_extractions.raw_json (the full structured extraction). Returns {cik: dict}
+    only for issuers that have at least one meaningful sub-section."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    out = {}
+    try:
+        ciks = [r[0] for r in conn.execute("SELECT DISTINCT cik FROM llm_extractions")]
+    except sqlite3.OperationalError:
+        conn.close()
+        return out
+    for cik in ciks:
+        r = conn.execute("SELECT raw_json FROM llm_extractions WHERE cik=? "
+                         "ORDER BY extracted_at DESC LIMIT 1", (cik,)).fetchone()
+        if not r or not r["raw_json"]:
+            continue
+        try:
+            d = json.loads(r["raw_json"])
+        except Exception:
+            continue
+        covs = [{"type": cv.get("covenant_type") or cv.get("ratio_name"),
+                 "threshold": cv.get("threshold_value"), "unit": cv.get("unit") or "",
+                 "direction": cv.get("direction"), "frequency": cv.get("testing_frequency"),
+                 "springing": bool(cv.get("is_springing"))}
+                for cv in (d.get("covenants") or [])]
+        mats = [{"year": m.get("year_label"), "amount": m.get("amount_millions")}
+                for m in (d.get("maturity_schedule") or []) if m.get("amount_millions") is not None]
+        rev = d.get("revolver") or {}
+        revolver = None
+        if rev.get("exists"):
+            revolver = {"commitment": rev.get("total_commitment_millions"),
+                        "drawn": rev.get("drawn_amount_millions"),
+                        "undrawn": rev.get("undrawn_availability_millions"),
+                        "maturity": rev.get("maturity_date")}
+        cmp = d.get("compliance") or {}
+        status = cmp.get("status")
+        compliance = None
+        if status and status != "not_disclosed":
+            compliance = {"status": status, "going_concern": bool(cmp.get("going_concern_flag")),
+                          "evidence": cmp.get("evidence") or cmp.get("description")}
+        if covs or mats or revolver or compliance:
+            out[cik] = {"compliance": compliance, "covenants": covs,
+                        "maturities": mats, "revolver": revolver}
+    conn.close()
+    return out
+
+
 def load_scorecard(bt):
     dist = bt["distressed"]
     caught = [c for c in dist if c["status"] == "caught"]
@@ -172,6 +220,11 @@ def build():
     for cik, info in issuers.items():
         if cik in friendly:
             info["name"] = friendly[cik]
+    # LLM footnote extractions (only issuers that have any) -> attach per issuer.
+    llm = load_llm()
+    for cik, info in issuers.items():
+        if cik in llm:
+            info["llm"] = llm[cik]
     # Re-sort by the (possibly overlaid) display name so the dropdown is alphabetical.
     issuers = dict(sorted(issuers.items(), key=lambda kv: kv[1]["name"].lower()))
 
@@ -247,6 +300,16 @@ TEMPLATE = r"""<!DOCTYPE html>
   .legend span{margin-right:14px}
   .muted{color:var(--muted)}
   .why{color:#374151;font-size:12.5px}
+  .llm-compliance{display:inline-block;padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px}
+  .llm-compliance.green{background:#dcfce7;color:#166534}
+  .llm-compliance.orange{background:#ffedd5;color:#9a3412}
+  .llm-compliance.red{background:#fee2e2;color:#991b1b}
+  .llm-compliance.grey{background:#f3f4f6;color:#374151}
+  blockquote.ev{margin:10px 0 0;padding:8px 14px;border-left:3px solid #d1d5db;color:#6b7280;
+    font-style:italic;font-size:12.5px;line-height:1.5}
+  .llm-sub{margin-top:18px}
+  .llm-sub h4{margin:0 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:600}
+  td.freq{font-size:11.5px;color:#6b7280;white-space:normal;max-width:420px}
   .drv{font-family:var(--mono);font-size:12px;color:#b45309}
   .note{font-size:12px;color:var(--muted);margin-top:12px;font-style:italic}
   footer{max-width:1180px;margin:0 auto;padding:0 24px 40px;color:var(--muted);font-size:11.5px;font-family:var(--mono)}
@@ -289,6 +352,13 @@ TEMPLATE = r"""<!DOCTYPE html>
       <div class="spark"><h3>Interest Coverage</h3>
         <div id="coverageBox" style="position:relative; height:300px;"><canvas id="sparkCov"></canvas></div>
       </div>
+    </div>
+    <div id="llmSection" style="display:none; margin-top:24px;">
+      <h3 onclick="toggleLLM()" style="font-size:13px; color:#374151; margin-bottom:12px; cursor:pointer; user-select:none;">
+        <span id="llmCaret">▾</span> 📋 LLM Extracted Details
+        <span style="font-size:11px; color:#9ca3af; font-weight:normal;">— from SEC filing footnotes</span>
+      </h3>
+      <div id="llmContent"></div>
     </div>
   </section>
 
@@ -395,6 +465,63 @@ function renderCompany(cik){
   const labels=periods.map(qLabel);
   drawSpark("leverageBox","sparkLev",lev,labels,'#2563eb');
   drawSpark("coverageBox","sparkCov",cov,labels,'#16a34a');
+  renderLLM(cik);
+}
+
+// ---- Section 2: LLM extracted details ----
+const CMP_STYLE={in_compliance:["green","✅"],going_concern_doubt:["orange","🟠"],
+  breach:["red","🔴"],chapter_11:["red","🔴"],default_event:["red","🔴"]};
+function money(v){ return v==null ? "—" : "$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:1})+"M"; }
+function toggleLLM(){
+  const c=document.getElementById("llmContent"), car=document.getElementById("llmCaret");
+  const hidden=c.style.display==="none";
+  c.style.display=hidden?"block":"none"; car.textContent=hidden?"▾":"▸";
+}
+function renderLLM(cik){
+  const sec=document.getElementById("llmSection"), box=document.getElementById("llmContent");
+  const llm=ISSUERS[cik].llm;
+  if(!llm){ sec.style.display="none"; box.innerHTML=""; return; }
+  let h="";
+  // A — compliance
+  if(llm.compliance){
+    const st=llm.compliance.status, sty=CMP_STYLE[st]||["grey","ℹ️"];
+    h+=`<div class="llm-sub"><div class="llm-compliance ${sty[0]}">${sty[1]} Compliance: ${st.replace(/_/g,' ')}`
+      +`${llm.compliance.going_concern?' · going-concern doubt':''}</div>`;
+    if(llm.compliance.evidence) h+=`<blockquote class="ev">${llm.compliance.evidence}</blockquote>`;
+    h+="</div>";
+  }
+  // B — covenants
+  if(llm.covenants && llm.covenants.length){
+    h+=`<div class="llm-sub"><h4>Covenants</h4><table><thead><tr><th>Type</th>`
+      +`<th class="num">Threshold</th><th>Direction</th><th>Frequency</th><th>Springing</th></tr></thead><tbody>`;
+    for(const c of llm.covenants){
+      const thr=c.threshold==null?"—":(c.threshold+(c.unit||""));
+      h+=`<tr><td>${(c.type||"—").replace(/_/g,' ')}</td><td class="num">${thr}</td>`
+        +`<td>${c.direction||"—"}</td><td class="freq">${c.frequency||"—"}</td>`
+        +`<td>${c.springing?"Yes":"No"}</td></tr>`;
+    }
+    h+="</tbody></table></div>";
+  }
+  // C — maturities
+  if(llm.maturities && llm.maturities.length){
+    h+=`<div class="llm-sub"><h4>Debt Maturity Schedule</h4><table><thead><tr><th>Year</th>`
+      +`<th class="num">Principal ($M)</th></tr></thead><tbody>`;
+    for(const m of llm.maturities){
+      h+=`<tr><td>${m.year||"—"}</td><td class="num">${money(m.amount)}</td></tr>`;
+    }
+    h+="</tbody></table></div>";
+  }
+  // D — revolver
+  if(llm.revolver){
+    const r=llm.revolver;
+    h+=`<div class="llm-sub"><h4>Revolving Credit Facility</h4>`
+      +`<div class="mono" style="font-size:13px">Commitment ${money(r.commitment)} · `
+      +`Drawn ${money(r.drawn)} · Available ${money(r.undrawn)} · Matures ${r.maturity||"—"}</div></div>`;
+  }
+  box.innerHTML=h;
+  box.style.display="block";
+  document.getElementById("llmCaret").textContent="▾";
+  sec.style.display="block";
 }
 function initIssuers(){
   const sel=document.getElementById("issuerSel");
