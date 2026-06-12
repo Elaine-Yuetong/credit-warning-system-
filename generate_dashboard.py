@@ -241,6 +241,8 @@ TEMPLATE = r"""<!DOCTYPE html>
   .spark-wrap{display:flex;gap:24px;flex-wrap:wrap;margin-top:20px}
   .spark{flex:1;min-width:300px;background:#fafbfc;border:1px solid var(--line);border-radius:9px;padding:14px 16px}
   .spark h3{margin:0 0 8px;font-size:12.5px;color:#374151;font-weight:600}
+  .nodata{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;
+    color:var(--muted);font-size:12.5px;font-style:italic;padding:0 14px}
   .legend{font-size:12px;color:var(--muted);margin-top:10px}
   .legend span{margin-right:14px}
   .muted{color:var(--muted)}
@@ -281,8 +283,12 @@ TEMPLATE = r"""<!DOCTYPE html>
     <div class="scroll" style="margin-top:16px"><table class="mtable" id="metricTable"></table></div>
     <div class="legend"><span>🔴 Critical</span><span>🟠 Stress</span><span>🟡 Flag</span><span>🔵 Watch</span><span>✅ None</span><span>· n/a or suppressed</span></div>
     <div class="spark-wrap">
-      <div class="spark"><h3>Leverage (Net Debt / EBITDA)</h3><canvas id="sparkLev" height="90"></canvas></div>
-      <div class="spark"><h3>Interest Coverage</h3><canvas id="sparkCov" height="90"></canvas></div>
+      <div class="spark"><h3>Leverage (Net Debt / EBITDA)</h3>
+        <div id="leverageBox" style="position:relative; height:300px;"><canvas id="sparkLev"></canvas></div>
+      </div>
+      <div class="spark"><h3>Interest Coverage</h3>
+        <div id="coverageBox" style="position:relative; height:300px;"><canvas id="sparkCov"></canvas></div>
+      </div>
     </div>
   </section>
 
@@ -351,7 +357,24 @@ function renderScorecard(){
 }
 
 // ---- Section 2 ----
-let sparkLev, sparkCov;
+const SPARK_CHARTS = {};   // canvasId -> Chart instance
+function drawSpark(boxId, canvasId, vals, labels, color){
+  const box=document.getElementById(boxId);
+  if(SPARK_CHARTS[canvasId]){ SPARK_CHARTS[canvasId].destroy(); SPARK_CHARTS[canvasId]=null; }
+  const allNull = vals.every(v=>v===null||v===undefined);
+  if(allNull){
+    box.innerHTML='<div class="nodata">No data — metric null for all periods (EBITDA ≤ 0 or tag absent)</div>';
+    return;
+  }
+  box.innerHTML='<canvas id="'+canvasId+'"></canvas>';
+  SPARK_CHARTS[canvasId]=new Chart(document.getElementById(canvasId),{type:'line',
+    data:{labels,datasets:[{data:vals,borderColor:color,backgroundColor:color+'1a',
+      fill:true,tension:.25,spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      elements:{point:{radius:2}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{grid:{color:'#eef0f2'},ticks:{font:{size:10}}}}}});
+}
 function renderCompany(cik){
   const iss=ISSUERS[cik], periods=iss.periods;
   let head="<thead><tr><th>Metric</th>"+periods.map(p=>`<th class="num">${qLabel(p)}</th>`).join("")+"</tr></thead>";
@@ -370,14 +393,8 @@ function renderCompany(cik){
   const lev=periods.map(p=>(iss.data["leverage"]||{})[p]?.v ?? null);
   const cov=periods.map(p=>(iss.data["interest_coverage"]||{})[p]?.v ?? null);
   const labels=periods.map(qLabel);
-  const opt=(color)=>({type:'line',options:{plugins:{legend:{display:false}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#eef0f2'},ticks:{font:{size:10}}}},
-    elements:{point:{radius:2}},maintainAspectRatio:false}});
-  if(sparkLev)sparkLev.destroy(); if(sparkCov)sparkCov.destroy();
-  sparkLev=new Chart(document.getElementById("sparkLev"),{...opt(),
-    data:{labels,datasets:[{data:lev,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.10)',fill:true,tension:.25,spanGaps:true}]}});
-  sparkCov=new Chart(document.getElementById("sparkCov"),{...opt(),
-    data:{labels,datasets:[{data:cov,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.10)',fill:true,tension:.25,spanGaps:true}]}});
+  drawSpark("leverageBox","sparkLev",lev,labels,'#2563eb');
+  drawSpark("coverageBox","sparkCov",cov,labels,'#16a34a');
 }
 function initIssuers(){
   const sel=document.getElementById("issuerSel");
