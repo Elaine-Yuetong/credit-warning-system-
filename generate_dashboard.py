@@ -141,7 +141,8 @@ def load_llm():
         covs = [{"type": cv.get("covenant_type") or cv.get("ratio_name"),
                  "threshold": cv.get("threshold_value"), "unit": cv.get("unit") or "",
                  "direction": cv.get("direction"), "frequency": cv.get("testing_frequency"),
-                 "springing": bool(cv.get("is_springing"))}
+                 "springing": bool(cv.get("is_springing")),
+                 "evidence": cv.get("evidence") or cv.get("evidence_quote") or ""}
                 for cv in (d.get("covenants") or [])]
         mats = [{"year": m.get("year_label"), "amount": m.get("amount_millions")}
                 for m in (d.get("maturity_schedule") or []) if m.get("amount_millions") is not None]
@@ -496,9 +497,14 @@ function renderLLM(cik){
       +`<th class="num">Threshold</th><th>Direction</th><th>Frequency</th><th>Springing</th></tr></thead><tbody>`;
     for(const c of llm.covenants){
       const thr=c.threshold==null?"—":(c.threshold+(c.unit||""));
+      const evid=c.evidence ? `<tr><td colspan="5" style="padding:0 8px 10px;">`
+        +`<details><summary style="font-size:11.5px;color:#6b7280;cursor:pointer;">`
+        +`Show filing evidence</summary>`
+        +`<blockquote class="ev" style="margin:6px 0 0;">${c.evidence}</blockquote>`
+        +`</details></td></tr>` : "";
       h+=`<tr><td>${(c.type||"—").replace(/_/g,' ')}</td><td class="num">${thr}</td>`
         +`<td>${c.direction||"—"}</td><td class="freq">${c.frequency||"—"}</td>`
-        +`<td>${c.springing?"Yes":"No"}</td></tr>`;
+        +`<td>${c.springing?"Yes":"No"}</td></tr>${evid}`;
     }
     h+="</tbody></table></div>";
   }
