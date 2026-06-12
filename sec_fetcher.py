@@ -146,11 +146,11 @@ _MDA_CAPEX_SIGNAL_TERMS = [
 
 @dataclass
 class FilingRef:
-    form: str
-    accession: str
-    primary_document: str
-    filing_date: Optional[str]
-    report_date: Optional[str]
+    form: str  # 10-K or 10-Q
+    accession: str # SEC Document Number like "0000320193-23-000106"
+    primary_document: str # main HTML Document name
+    filing_date: Optional[str] # Submission Date
+    report_date: Optional[str] # Report end date
 
 
 @dataclass
@@ -159,23 +159,23 @@ class DebtFootnote:
     form: str
     accession: str
     source_url: str
-    found: bool
+    found: bool  #whether found the footnote
     # form_type mirrors `form` (10-K / 10-Q); kept so save_to_db() can read source.form_type.
     # Placed here (first defaulted field) because a dataclass requires defaulted fields to
     # follow the required ones above — it cannot sit immediately after `form`.
-    form_type: str = ""
+    form_type: str = ""  # The same form, retain compatibility
     heading: Optional[str] = None
     char_start: Optional[int] = None
     char_end: Optional[int] = None
-    text: str = ""
+    text: str = ""  # Debt Footnote main body
     full_text_len: int = 0
     signal_hits: dict = field(default_factory=dict)
     # Additional notes that often carry waiver / breach / restructuring language the 30k
     # debt window can miss. The LLM (Step 2) reads debt + going-concern + subsequent.
-    going_concern_text: str = ""
-    subsequent_events_text: str = ""
+    going_concern_text: str = "" # Going Concern Note
+    subsequent_events_text: str = ""  # Subsequent Events Note
     # Loss-provisions sources (Group 4): the contingency footnote + legal-proceedings item.
-    loss_contingency_text: str = ""
+    loss_contingency_text: str = "" 
     legal_proceedings_text: str = ""
     # Asset-composition sources (Group 6): PP&E / inventory / intangibles footnotes.
     ppe_text: str = ""
@@ -292,11 +292,17 @@ def _candidate_positions(low: str, patterns: list[str]) -> list[tuple[int, str]]
 
 
 def _locate_section(text: str, headings: list[str], signal_terms: list[str],
-                    window: int, min_distinct: int = 3) -> tuple[bool, Optional[str], int, int, dict]:
+                    window: int, min_distinct: int = 3,
+                    strict: bool = False) -> tuple[bool, Optional[str], int, int, dict]:
     """Generic footnote locator: pick the heading candidate whose following `window` has the
     highest density of `signal_terms`, with a heading-position bonus, trimmed at the next
     "Note N" boundary. Shared by all three locators. Returns
-    (found, heading, char_start, char_end, signal_hits)."""
+    (found, heading, char_start, char_end, signal_hits).
+
+    `min_distinct` is a SOFT preference by default: every heading match is scored, candidates
+    meeting min_distinct get a +5 bonus (so they win over thin ones), but thin candidates are
+    still eligible — found=False only when there are zero heading matches. Pass strict=True to
+    restore the old hard filter (thin candidates excluded outright); no caller needs it today."""
     low = text.lower()
     best_score = -1
     best: Optional[tuple[int, str, int, dict]] = None  # (start, phrase, end, hits)
@@ -306,9 +312,11 @@ def _locate_section(text: str, headings: list[str], signal_terms: list[str],
         hits = {term: win.count(term) for term in signal_terms}
         distinct = sum(1 for c in hits.values() if c > 0)
         score = sum(min(c, 5) for c in hits.values())   # cap each term's contribution
-        # Require genuine signal; a bare passing mention won't qualify.
-        if distinct < min_distinct:
+        # Hard filter only when strict=True; otherwise min_distinct is a soft preference.
+        if strict and distinct < min_distinct:
             continue
+        if distinct >= min_distinct:
+            score += 5   # soft preference: reward meeting the density threshold
         # Heading bonus: a real footnote title sits at the start of a short line, not
         # mid-sentence. Reward that and back the start up to the heading line.
         line_start = low.rfind("\n", 0, pos) + 1
