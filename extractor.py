@@ -237,9 +237,11 @@ CONCEPTS: dict[str, Concept] = {
     ),
     "interest_expense": Concept(
         "interest_expense", "duration", "first",
-        ("InterestExpense", "InterestAndDebtExpense"),
+        ("InterestExpense", "InterestAndDebtExpense", "InterestExpenseDebt"),
         flag_tags={"InterestAndDebtExpense":
-                   "InterestExpense absent — InterestAndDebtExpense used; may include debt issuance cost amortization"},
+                   "InterestExpense absent — InterestAndDebtExpense used; may include debt issuance cost amortization",
+                   "InterestExpenseDebt":
+                   "InterestExpense absent — InterestExpenseDebt used (common for pharma/biotech)"},
     ),
     # Net-interest detection only (§ coverage): presence triggers a null + flag, never used as value.
     "interest_net": Concept(
