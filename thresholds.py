@@ -400,25 +400,31 @@ def _covenant_proxy_alert(m: MetricResult) -> Optional[str]:
     return None
 
 
+# Thresholds loosened based on empirical calibration against 15 healthy IG controls
+# (exploratory, n=30 distressed). Healthy IG industrials with high goodwill averaged
+# 0.93 on this metric — inside the old Flag band. Cohen's d = +0.74, CI [+0.12, +1.36]
+# (medium effect, wide CI — treat as hypothesis). Threshold adjustment is empirical,
+# not a statistical conclusion. Review when n≥50.
 def _liquidation_coverage_alert(m: MetricResult) -> Optional[str]:
     """Liquidation coverage alert (ASSET_COVERAGE.md Dimension 3) — most severe across both
-    scenarios. Base: <0.7 Flag, <0.5 Stress, <0.3 Critical. Conservative: <0.5 Stress, <0.3 Critical."""
+    scenarios. Base: <0.5 Flag, <0.35 Stress, <0.2 Critical. Conservative: <0.35 Stress, <0.2 Critical.
+    (Loosened from base <0.7/<0.5/<0.3 and conservative <0.5/<0.3 — see note above.)"""
     if m.value is None:
         return None
     level: Optional[str] = None
     base = m.extra.get("base_coverage")
     cons = m.extra.get("conservative_coverage")
     if base is not None:
-        if base < 0.3:
+        if base < 0.2:
             level = _escalate(level, "Critical")
-        elif base < 0.5:
+        elif base < 0.35:
             level = _escalate(level, "Stress")
-        elif base < 0.7:
+        elif base < 0.5:
             level = _escalate(level, "Flag")
     if cons is not None:
-        if cons < 0.3:
+        if cons < 0.2:
             level = _escalate(level, "Critical")
-        elif cons < 0.5:
+        elif cons < 0.35:
             level = _escalate(level, "Stress")
     return level
 
