@@ -117,8 +117,7 @@ def load_issuers():
     return issuers, units
 
 
-def load_scorecard():
-    bt = json.load(open(BACKTEST_JSON, encoding="utf-8"))
+def load_scorecard(bt):
     dist = bt["distressed"]
     caught = [c for c in dist if c["status"] == "caught"]
     scoreable = [c for c in dist if c["status"] in ("caught", "flagged_late", "missed")]
@@ -138,9 +137,16 @@ def load_scorecard():
     rows = []
     for c in dist:
         lead = round(c["lead_days"] / 30.44) if c.get("lead_days") is not None else None
+        # Alert level on the first confirmed distress-signal date (not the timeline peak).
+        first_signal_level = None
+        if c.get("first_stress_date"):
+            for sp in c.get("timeline", []):
+                if sp["as_of"] == c["first_stress_date"]:
+                    first_signal_level = sp["level"]
+                    break
         rows.append({"name": c["name"], "sector": SECTOR_MAP.get(c["name"], "—"),
                      "event": c["event_date"], "first": c["first_stress_date"],
-                     "lead": lead, "peak": c["peak_level"]})
+                     "lead": lead, "level": first_signal_level})
     rows.sort(key=lambda r: (-(r["lead"] or 0)))
     return {
         "caught": len(caught), "scoreable": len(scoreable),
@@ -153,8 +159,23 @@ def load_scorecard():
 
 
 def build():
+    bt = json.load(open(BACKTEST_JSON, encoding="utf-8"))
+    # Friendly-name overlay: map each CIK to its case-library display name (e.g. "Rite Aid",
+    # "Bed Bath & Beyond") so the dropdown shows those rather than the raw EDGAR shell names
+    # (e.g. "NEW RITE AID, LLC", "20230930-DK-Butterfly-1, Inc.").
+    friendly = {}
+    for grp in ("distressed", "healthy", "stressed_survivors"):
+        for c in bt.get(grp, []):
+            friendly[c["cik"]] = c["name"]
+
     issuers, units = load_issuers()
-    scorecard = load_scorecard()
+    for cik, info in issuers.items():
+        if cik in friendly:
+            info["name"] = friendly[cik]
+    # Re-sort by the (possibly overlaid) display name so the dropdown is alphabetical.
+    issuers = dict(sorted(issuers.items(), key=lambda kv: kv[1]["name"].lower()))
+
+    scorecard = load_scorecard(bt)
     data_js = (
         "const ISSUERS = " + json.dumps(issuers) + ";\n"
         "const UNITS = " + json.dumps(units) + ";\n"
@@ -244,7 +265,7 @@ TEMPLATE = r"""<!DOCTYPE html>
       <table id="distTable">
         <thead><tr>
           <th>Company</th><th>Sector</th><th>Bankruptcy</th><th>First Signal</th>
-          <th class="num">Lead (mo)</th><th>Peak Alert</th>
+          <th class="num">Lead (mo)</th><th>First Signal Level</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -320,11 +341,11 @@ function renderScorecard(){
   document.getElementById("kpis").innerHTML = kpis.map(k=>
     `<div class="kpi ${k.pass?'pass':''}"><div class="v">${k.v}</div><div class="l">${k.l}</div></div>`).join("");
   const tb=document.querySelector("#distTable tbody");
-  tb.innerHTML = s.rows.map(r=>`<tr class="${rowClass(r.peak)}">
+  tb.innerHTML = s.rows.map(r=>`<tr class="${rowClass(r.level)}">
     <td><strong>${r.name}</strong></td><td class="muted">${r.sector}</td>
     <td class="mono">${r.event||"—"}</td><td class="mono">${r.first||"—"}</td>
     <td class="num">${r.lead==null?"—":r.lead}</td>
-    <td>${iconFor(1,r.peak)} ${r.peak||"None"}</td></tr>`).join("");
+    <td>${iconFor(1,r.level)} ${r.level||"None"}</td></tr>`).join("");
 }
 
 // ---- Section 2 ----
