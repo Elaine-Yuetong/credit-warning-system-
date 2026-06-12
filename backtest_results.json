@@ -3456,13 +3456,15 @@
       "stress_end": null,
       "resolved_name": "TUPPERWARE BRANDS CORP",
       "status": "caught",
-      "first_stress_date": "2021-09-17",
-      "lead_days": 1096,
+      "first_stress_date": "2021-12-17",
+      "lead_days": 1005,
       "peak_level": "Critical",
       "peak_stress_metrics": [
         "current_ratio",
         "debt_to_equity",
-        "quick_ratio"
+        "quick_ratio",
+        "rcf_net_debt",
+        "revenue_yoy_growth"
       ],
       "single_metric_first_date": "2021-09-17",
       "n_preevent_quarters": 8,
@@ -6838,12 +6840,16 @@
       "stress_end": null,
       "resolved_name": "BRIGGS & STRATTON CORP",
       "status": "caught",
-      "first_stress_date": "2018-01-20",
-      "lead_days": 912,
+      "first_stress_date": "2019-01-20",
+      "lead_days": 547,
       "peak_level": "Critical",
       "peak_stress_metrics": [
         "ebitda_margin",
-        "rcf_net_debt"
+        "interest_coverage",
+        "leverage",
+        "maturity_coverage_near_term",
+        "rcf_net_debt",
+        "revenue_yoy_growth"
       ],
       "single_metric_first_date": "2017-10-20",
       "n_preevent_quarters": 8,
@@ -12759,12 +12765,14 @@
       "stress_end": null,
       "resolved_name": "Garrett Motion Inc.",
       "status": "caught",
-      "first_stress_date": "2018-12-20",
-      "lead_days": 640,
+      "first_stress_date": "2019-03-20",
+      "lead_days": 550,
       "peak_level": "Critical",
       "peak_stress_metrics": [
+        "current_ratio",
         "debt_to_equity",
-        "liquidation_asset_coverage"
+        "liquidation_asset_coverage",
+        "revenue_yoy_growth"
       ],
       "single_metric_first_date": "2018-12-20",
       "n_preevent_quarters": 8,
@@ -14508,7 +14516,7 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-12-11"
+        "2023-12-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -14519,7 +14527,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14548,7 +14556,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14577,7 +14585,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -14608,7 +14616,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -14637,7 +14645,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14666,7 +14674,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14695,7 +14703,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14724,7 +14732,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14753,7 +14761,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14782,7 +14790,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14811,7 +14819,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14840,7 +14848,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -14869,7 +14877,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -14924,7 +14932,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -14953,7 +14961,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -14982,7 +14990,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -15011,7 +15019,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15040,7 +15048,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15069,7 +15077,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15098,7 +15106,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -15127,7 +15135,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15156,7 +15164,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -15185,7 +15193,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -15214,7 +15222,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15243,7 +15251,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15272,7 +15280,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15320,7 +15328,7 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11"
+        "2023-06-12"
       ],
       "note": "FY OperatingIncomeLoss gap \u2014 leverage/coverage path may be null",
       "stress_detected": false,
@@ -15331,7 +15339,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -15362,7 +15370,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15391,7 +15399,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15420,7 +15428,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15449,7 +15457,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15478,7 +15486,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15507,7 +15515,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15536,7 +15544,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15565,7 +15573,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15594,7 +15602,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15623,7 +15631,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -15652,7 +15660,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15681,7 +15689,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -15718,7 +15726,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "WASTE MANAGEMENT INC",
-      "status": "annotated",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -15727,24 +15735,21 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2025-03-11",
-        "2025-06-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "acquisition-driven D/E \u2014 Stericycle 2023; one-off leveraging, not deterioration",
       "stress_detected": false,
@@ -15755,7 +15760,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15786,7 +15791,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15817,7 +15822,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15848,7 +15853,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15879,7 +15884,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15910,7 +15915,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15941,7 +15946,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -15972,7 +15977,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16005,7 +16010,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16037,7 +16042,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16068,7 +16073,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16099,7 +16104,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16130,7 +16135,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16180,19 +16185,19 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -16203,7 +16208,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16234,7 +16239,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16265,7 +16270,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16296,7 +16301,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16327,7 +16332,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16358,7 +16363,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16389,7 +16394,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16420,7 +16425,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16451,7 +16456,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16482,7 +16487,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16513,7 +16518,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16544,7 +16549,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16575,7 +16580,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -16632,7 +16637,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16661,7 +16666,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16690,7 +16695,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16719,7 +16724,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16748,7 +16753,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16777,7 +16782,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16806,7 +16811,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16835,7 +16840,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -16864,7 +16869,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16893,7 +16898,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16922,7 +16927,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16951,7 +16956,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -16980,7 +16985,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -17017,7 +17022,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "EMERSON ELECTRIC CO",
-      "status": "annotated",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -17026,18 +17031,16 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-12-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "portfolio transformation 2021-2023 (AspenTech, Climate Tech spin) \u2014 single-quarter signal during strategic transition",
       "stress_detected": false,
@@ -17048,7 +17051,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -17079,7 +17082,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -17108,7 +17111,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -17140,7 +17143,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17171,7 +17174,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -17200,7 +17203,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -17229,7 +17232,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -17258,7 +17261,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -17287,7 +17290,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -17319,7 +17322,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17350,7 +17353,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17382,7 +17385,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17413,7 +17416,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17452,7 +17455,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "ILLINOIS TOOL WORKS INC",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Stress",
@@ -17461,28 +17464,21 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2024-03-11",
-        "2024-06-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2026-03-11",
-        "2026-06-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -17493,7 +17489,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17524,7 +17520,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17555,7 +17551,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17586,7 +17582,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17618,7 +17614,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17650,7 +17646,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17681,7 +17677,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17712,7 +17708,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17743,7 +17739,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17776,7 +17772,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17808,7 +17804,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17839,7 +17835,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17871,7 +17867,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17923,12 +17919,12 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-12-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-12-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -17939,7 +17935,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -17970,7 +17966,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -18001,7 +17997,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18033,7 +18029,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18062,7 +18058,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18091,7 +18087,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18120,7 +18116,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -18151,7 +18147,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -18182,7 +18178,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18211,7 +18207,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18240,7 +18236,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -18271,7 +18267,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18300,7 +18296,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18348,19 +18344,19 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -18371,7 +18367,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18402,7 +18398,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18433,7 +18429,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18464,7 +18460,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18495,7 +18491,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18526,7 +18522,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18557,7 +18553,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18588,7 +18584,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18620,7 +18616,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18652,7 +18648,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18684,7 +18680,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18716,7 +18712,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18748,7 +18744,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18787,7 +18783,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "BECTON DICKINSON & CO",
-      "status": "annotated",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -18796,19 +18792,16 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2025-06-11",
-        "2026-03-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2024-06-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2024-06-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "C.R. Bard acquisition 2017 ($24B) \u2014 elevated D/E acquisition-driven, not credit stress",
       "stress_detected": false,
@@ -18819,7 +18812,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -18850,7 +18843,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -18879,7 +18872,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18908,7 +18901,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18937,7 +18930,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -18968,7 +18961,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -18997,7 +18990,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -19026,7 +19019,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19057,7 +19050,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -19089,7 +19082,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19120,7 +19113,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19151,7 +19144,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19183,7 +19176,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19234,28 +19227,28 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-12-11"
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-12-12"
       ],
       "single_metric_fp_dates": [
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "large project capex cycle 2021-2023 (Jazan gasification) \u2014 temporary FCF/margin compression, not credit deterioration",
       "stress_detected": false,
@@ -19266,7 +19259,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -19295,7 +19288,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19326,7 +19319,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -19358,7 +19351,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19390,7 +19383,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19422,7 +19415,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19454,7 +19447,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19486,7 +19479,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19518,7 +19511,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19552,7 +19545,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19583,7 +19576,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19615,7 +19608,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19646,7 +19639,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19685,7 +19678,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "ECOLAB INC.",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Stress",
@@ -19695,13 +19688,11 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-06-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -19712,7 +19703,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19744,7 +19735,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -19775,7 +19766,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -19804,7 +19795,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -19833,7 +19824,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -19862,7 +19853,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -19891,7 +19882,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -19920,7 +19911,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -19949,7 +19940,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -19978,7 +19969,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -20007,7 +19998,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20036,7 +20027,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20065,7 +20056,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -20116,11 +20107,11 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2024-03-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2026-03-11"
+        "2023-06-12",
+        "2024-03-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2026-03-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -20131,7 +20122,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -20162,7 +20153,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20191,7 +20182,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20220,7 +20211,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -20251,7 +20242,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20280,7 +20271,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20309,7 +20300,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -20340,7 +20331,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -20371,7 +20362,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20400,7 +20391,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20429,7 +20420,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20458,7 +20449,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -20489,7 +20480,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20537,7 +20528,7 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2024-03-11"
+        "2024-03-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -20548,7 +20539,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20577,7 +20568,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20606,7 +20597,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20635,7 +20626,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -20666,7 +20657,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -20695,7 +20686,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20724,7 +20715,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -20753,7 +20744,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20782,7 +20773,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20811,7 +20802,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -20840,7 +20831,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -20869,7 +20860,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -20898,7 +20889,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -20912,454 +20903,6 @@
             "ocf_ebitda_conversion": 0,
             "moody_adjusted_fcf": 1,
             "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "Texas Instruments",
-      "cik": "0000097476",
-      "event_date": null,
-      "stress_start": null,
-      "stress_end": null,
-      "resolved_name": "TEXAS INSTRUMENTS INC",
-      "status": "false_positive",
-      "first_stress_date": null,
-      "lead_days": null,
-      "peak_level": "Critical",
-      "peak_stress_metrics": [
-        "rcf_net_debt",
-        "revenue_yoy_growth"
-      ],
-      "single_metric_first_date": null,
-      "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11"
-      ],
-      "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11"
-      ],
-      "note": "",
-      "stress_detected": false,
-      "clean_before": false,
-      "clean_after": false,
-      "during_dates": [],
-      "before_dates": [],
-      "after_dates": [],
-      "timeline": [
-        {
-          "as_of": "2023-06-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "rcf_net_debt",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 6,
-          "latest_period": "2023-03-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 1,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 3,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 2,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 2,
-            "asset_coverage": 1,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2023-09-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 7,
-          "latest_period": "2023-06-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 1,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 2,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 2,
-            "asset_coverage": 1,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2023-12-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 3,
-          "latest_period": "2023-09-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-03-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 3,
-          "latest_period": "2023-12-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-06-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "rcf_net_debt",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 6,
-          "latest_period": "2024-03-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 4,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-09-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 4,
-          "latest_period": "2024-06-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 2,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-12-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 3,
-          "latest_period": "2024-09-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 2,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 3,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-03-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 2,
-          "latest_period": "2024-12-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 1,
-            "revenue_yoy_growth": 3,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-06-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "rcf_net_debt"
-          ],
-          "flag_count": 4,
-          "latest_period": "2025-03-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 2,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 4,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 1,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-09-11",
-          "level": null,
-          "ordinal": 0,
-          "stress_metrics": [],
-          "flag_count": 0,
-          "latest_period": "2025-06-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-12-11",
-          "level": null,
-          "ordinal": 0,
-          "stress_metrics": [],
-          "flag_count": 0,
-          "latest_period": "2025-09-30",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2026-03-11",
-          "level": null,
-          "ordinal": 0,
-          "stress_metrics": [],
-          "flag_count": 0,
-          "latest_period": "2025-12-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 0,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2026-06-11",
-          "level": "Flag",
-          "ordinal": 2,
-          "stress_metrics": [],
-          "flag_count": 2,
-          "latest_period": "2026-03-31",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 2,
             "current_ratio": 0,
             "quick_ratio": 0,
             "ebitda_margin": 0,
@@ -21401,7 +20944,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -21430,7 +20973,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21459,7 +21002,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -21488,7 +21031,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21517,7 +21060,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21546,7 +21089,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -21575,7 +21118,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -21604,7 +21147,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21633,7 +21176,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21662,7 +21205,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21691,7 +21234,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21720,7 +21263,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -21749,7 +21292,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -21780,498 +21323,6 @@
       ]
     },
     {
-      "name": "Pfizer",
-      "cik": "0000078003",
-      "event_date": null,
-      "stress_start": null,
-      "stress_end": null,
-      "resolved_name": "PFIZER INC",
-      "status": "false_positive",
-      "first_stress_date": null,
-      "lead_days": null,
-      "peak_level": "Critical",
-      "peak_stress_metrics": [
-        "revenue_yoy_growth"
-      ],
-      "single_metric_first_date": null,
-      "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
-      ],
-      "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
-      ],
-      "note": "",
-      "stress_detected": false,
-      "clean_before": false,
-      "clean_after": false,
-      "during_dates": [],
-      "before_dates": [],
-      "after_dates": [],
-      "timeline": [
-        {
-          "as_of": "2023-06-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 3,
-          "latest_period": "2023-04-02",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 1,
-            "rcf_net_debt": 2,
-            "current_ratio": 1,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 0,
-            "maturity_coverage_near_term": 2,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2023-09-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "ocf_ebitda_conversion",
-            "rcf_net_debt",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 7,
-          "latest_period": "2023-07-02",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 3,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 4,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 1,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 2,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2023-12-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "ebitda_margin",
-            "liquidation_asset_coverage",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 5,
-          "latest_period": "2023-10-01",
-          "metric_alerts": {
-            "leverage": 2,
-            "interest_coverage": 2,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 0,
-            "quick_ratio": 0,
-            "ebitda_margin": 3,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 0,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 1,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-03-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "current_ratio",
-            "ebitda_margin",
-            "interest_coverage",
-            "leverage",
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 8,
-          "latest_period": "2023-12-31",
-          "metric_alerts": {
-            "leverage": 3,
-            "interest_coverage": 4,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 3,
-            "quick_ratio": 1,
-            "ebitda_margin": 4,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 2,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-06-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "interest_coverage",
-            "leverage",
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "rcf_net_debt",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 11,
-          "latest_period": "2024-03-31",
-          "metric_alerts": {
-            "leverage": 3,
-            "interest_coverage": 4,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 2,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 3,
-            "current_ratio": 2,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 4,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 4,
-            "covenant_headroom_leverage": 2,
-            "covenant_headroom_coverage": 2,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-09-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "current_ratio",
-            "interest_coverage",
-            "leverage",
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "ocf_ebitda_conversion",
-            "rcf_net_debt"
-          ],
-          "flag_count": 12,
-          "latest_period": "2024-06-30",
-          "metric_alerts": {
-            "leverage": 3,
-            "interest_coverage": 4,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 3,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 4,
-            "current_ratio": 3,
-            "quick_ratio": 1,
-            "ebitda_margin": 2,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 4,
-            "covenant_headroom_leverage": 2,
-            "covenant_headroom_coverage": 2,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2024-12-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "leverage",
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term"
-          ],
-          "flag_count": 5,
-          "latest_period": "2024-09-29",
-          "metric_alerts": {
-            "leverage": 3,
-            "interest_coverage": 1,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 2,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 4,
-            "covenant_headroom_leverage": 2,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-03-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term"
-          ],
-          "flag_count": 4,
-          "latest_period": "2024-12-31",
-          "metric_alerts": {
-            "leverage": 1,
-            "interest_coverage": 1,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 2,
-            "quick_ratio": 0,
-            "ebitda_margin": 2,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 4,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-06-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 4,
-          "latest_period": "2025-03-30",
-          "metric_alerts": {
-            "leverage": 1,
-            "interest_coverage": 1,
-            "free_cash_flow": 1,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 1,
-            "rcf_net_debt": 2,
-            "current_ratio": 1,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 3,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-09-11",
-          "level": "Critical",
-          "ordinal": 4,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "ocf_ebitda_conversion",
-            "rcf_net_debt"
-          ],
-          "flag_count": 7,
-          "latest_period": "2025-06-29",
-          "metric_alerts": {
-            "leverage": 0,
-            "interest_coverage": 0,
-            "free_cash_flow": 2,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 3,
-            "moody_adjusted_fcf": 2,
-            "rcf_net_debt": 4,
-            "current_ratio": 2,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2025-12-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term",
-            "revenue_yoy_growth"
-          ],
-          "flag_count": 3,
-          "latest_period": "2025-09-28",
-          "metric_alerts": {
-            "leverage": 1,
-            "interest_coverage": 0,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 1,
-            "quick_ratio": 0,
-            "ebitda_margin": 1,
-            "revenue_yoy_growth": 3,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2026-03-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term"
-          ],
-          "flag_count": 4,
-          "latest_period": "2025-12-31",
-          "metric_alerts": {
-            "leverage": 1,
-            "interest_coverage": 1,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 0,
-            "current_ratio": 2,
-            "quick_ratio": 0,
-            "ebitda_margin": 2,
-            "revenue_yoy_growth": 1,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        },
-        {
-          "as_of": "2026-06-11",
-          "level": "Stress",
-          "ordinal": 3,
-          "stress_metrics": [
-            "liquidation_asset_coverage",
-            "maturity_coverage_near_term"
-          ],
-          "flag_count": 3,
-          "latest_period": "2026-03-29",
-          "metric_alerts": {
-            "leverage": 1,
-            "interest_coverage": 1,
-            "free_cash_flow": 0,
-            "fcf_margin": 0,
-            "ocf_ebitda_conversion": 0,
-            "moody_adjusted_fcf": 0,
-            "rcf_net_debt": 2,
-            "current_ratio": 1,
-            "quick_ratio": 0,
-            "ebitda_margin": 0,
-            "revenue_yoy_growth": 0,
-            "debt_to_equity": 0,
-            "asset_coverage": 0,
-            "tangible_asset_coverage": 1,
-            "liquidation_asset_coverage": 3,
-            "maturity_coverage_near_term": 3,
-            "covenant_headroom_leverage": 0,
-            "covenant_headroom_coverage": 0,
-            "loss_provisions_balance": 0
-          }
-        }
-      ]
-    },
-    {
       "name": "Amgen",
       "cik": "0000318154",
       "event_date": null,
@@ -22289,30 +21340,23 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2023-06-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2024-06-12",
+        "2024-09-12"
       ],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -22323,7 +21367,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22355,7 +21399,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22386,7 +21430,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22417,7 +21461,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22450,7 +21494,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22484,7 +21528,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22518,7 +21562,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22550,7 +21594,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22581,7 +21625,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22614,7 +21658,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22646,7 +21690,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22677,7 +21721,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22709,7 +21753,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22759,17 +21803,16 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2024-03-11",
-        "2024-09-11"
+        "2024-03-12"
       ],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2025-03-11",
-        "2025-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2025-03-12",
+        "2025-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -22780,7 +21823,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22811,7 +21854,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22842,7 +21885,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -22871,7 +21914,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22906,7 +21949,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -22937,7 +21980,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -22969,7 +22012,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -22998,7 +22041,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23029,7 +22072,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23060,7 +22103,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23089,7 +22132,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23118,7 +22161,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23147,7 +22190,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23195,9 +22238,9 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11"
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -23208,7 +22251,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23237,7 +22280,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23266,7 +22309,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23295,7 +22338,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23324,7 +22367,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23353,7 +22396,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23382,7 +22425,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23411,7 +22454,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23442,7 +22485,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23473,7 +22516,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23504,7 +22547,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23533,7 +22576,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23562,7 +22605,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -23599,7 +22642,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "LOCKHEED MARTIN CORP",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -23611,22 +22654,18 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2025-03-11",
-        "2025-09-11",
-        "2026-06-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -23637,7 +22676,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23666,7 +22705,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23695,7 +22734,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -23724,7 +22763,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23755,7 +22794,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23786,7 +22825,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23817,7 +22856,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23848,7 +22887,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23880,7 +22919,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -23911,7 +22950,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -23945,7 +22984,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -23976,7 +23015,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -24007,7 +23046,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24058,17 +23097,15 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2023-06-11",
-        "2023-12-11",
-        "2025-09-11"
+        "2023-12-12"
       ],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-06-11",
-        "2025-06-11",
-        "2025-09-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-06-12",
+        "2025-06-12",
+        "2025-09-12"
       ],
       "note": "post-merger continuing entity (ex-United Technologies); not 0000082267 (pre-merger Raytheon Co, no XBRL)",
       "stress_detected": false,
@@ -24079,7 +23116,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24111,7 +23148,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24142,7 +23179,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24174,7 +23211,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -24203,7 +23240,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24234,7 +23271,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -24263,7 +23300,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -24292,7 +23329,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -24321,7 +23358,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -24352,7 +23389,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24384,7 +23421,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -24413,7 +23450,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -24442,7 +23479,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -24479,7 +23516,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "Motorola Solutions, Inc.",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -24490,28 +23527,21 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2024-09-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-06-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -24522,7 +23552,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24555,7 +23585,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24587,7 +23617,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24619,7 +23649,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24651,7 +23681,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24682,7 +23712,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24714,7 +23744,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24745,7 +23775,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24776,7 +23806,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24807,7 +23837,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24839,7 +23869,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24871,7 +23901,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24902,7 +23932,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -24955,32 +23985,31 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2023-06-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -24991,7 +24020,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25025,7 +24054,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25057,7 +24086,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25090,7 +24119,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25123,7 +24152,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25156,7 +24185,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25190,7 +24219,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25224,7 +24253,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -25255,7 +24284,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25290,7 +24319,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25323,7 +24352,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25358,7 +24387,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25392,7 +24421,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25435,7 +24464,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "KIMBERLY CLARK CORP",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -25445,26 +24474,21 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2024-06-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -25475,7 +24499,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25507,7 +24531,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25539,7 +24563,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25571,7 +24595,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25602,7 +24626,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25635,7 +24659,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25667,7 +24691,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25699,7 +24723,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25732,7 +24756,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25766,7 +24790,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25799,7 +24823,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25831,7 +24855,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25863,7 +24887,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25903,7 +24927,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "Walmart Inc.",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -25912,24 +24936,21 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2023-12-11",
-        "2024-03-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -25940,7 +24961,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -25971,7 +24992,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -26002,7 +25023,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26035,7 +25056,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26068,7 +25089,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26100,7 +25121,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26131,7 +25152,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26163,7 +25184,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26195,7 +25216,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26227,7 +25248,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26259,7 +25280,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26291,7 +25312,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26323,7 +25344,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26374,34 +25395,29 @@
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
       "fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-03-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-03-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -26412,7 +25428,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26444,7 +25460,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26476,7 +25492,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26508,7 +25524,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26540,7 +25556,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26572,7 +25588,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26605,7 +25621,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26638,7 +25654,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26671,7 +25687,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26704,7 +25720,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26737,7 +25753,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26770,7 +25786,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26803,7 +25819,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26855,16 +25871,16 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2024-09-11",
-        "2024-12-11",
-        "2025-09-11",
-        "2026-03-11",
-        "2026-06-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2024-09-12",
+        "2024-12-12",
+        "2025-09-12",
+        "2026-03-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -26875,7 +25891,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -26906,7 +25922,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26937,7 +25953,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -26968,7 +25984,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -26999,7 +26015,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27030,7 +26046,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27061,7 +26077,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27092,7 +26108,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27121,7 +26137,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27150,7 +26166,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -27181,7 +26197,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27210,7 +26226,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27241,7 +26257,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27280,7 +26296,7 @@
       "stress_start": null,
       "stress_end": null,
       "resolved_name": "PAYCHEX INC",
-      "status": "false_positive",
+      "status": "clean",
       "first_stress_date": null,
       "lead_days": null,
       "peak_level": "Critical",
@@ -27289,12 +26305,10 @@
       ],
       "single_metric_first_date": null,
       "n_preevent_quarters": null,
-      "fp_dates": [
-        "2026-03-11"
-      ],
+      "fp_dates": [],
       "single_metric_fp_dates": [
-        "2025-09-11",
-        "2026-03-11"
+        "2025-09-12",
+        "2026-03-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -27305,7 +26319,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -27334,7 +26348,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27363,7 +26377,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -27392,7 +26406,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27421,7 +26435,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -27450,7 +26464,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27479,7 +26493,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -27508,7 +26522,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27537,7 +26551,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27566,7 +26580,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -27597,7 +26611,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27626,7 +26640,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -27658,7 +26672,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27713,7 +26727,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27742,7 +26756,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -27771,7 +26785,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27800,7 +26814,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27829,7 +26843,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -27858,7 +26872,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27887,7 +26901,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27916,7 +26930,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27945,7 +26959,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -27974,7 +26988,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28003,7 +27017,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28032,7 +27046,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28061,7 +27075,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -28109,13 +27123,13 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-09-11",
-        "2023-12-11",
-        "2024-03-11",
-        "2024-06-11",
-        "2025-09-11",
-        "2025-12-11",
-        "2026-06-11"
+        "2023-09-12",
+        "2023-12-12",
+        "2024-03-12",
+        "2024-06-12",
+        "2025-09-12",
+        "2025-12-12",
+        "2026-06-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -28126,7 +27140,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28155,7 +27169,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28186,7 +27200,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28217,7 +27231,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28248,7 +27262,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28279,7 +27293,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -28308,7 +27322,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28337,7 +27351,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28366,7 +27380,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -28395,7 +27409,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28426,7 +27440,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28457,7 +27471,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28486,7 +27500,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28536,12 +27550,12 @@
       "n_preevent_quarters": null,
       "fp_dates": [],
       "single_metric_fp_dates": [
-        "2023-06-11",
-        "2023-09-11",
-        "2024-12-11",
-        "2025-06-11",
-        "2025-09-11",
-        "2026-03-11"
+        "2023-06-12",
+        "2023-09-12",
+        "2024-12-12",
+        "2025-06-12",
+        "2025-09-12",
+        "2026-03-12"
       ],
       "note": "",
       "stress_detected": false,
@@ -28552,7 +27566,7 @@
       "after_dates": [],
       "timeline": [
         {
-          "as_of": "2023-06-11",
+          "as_of": "2023-06-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28570,7 +27584,7 @@
           }
         },
         {
-          "as_of": "2023-09-11",
+          "as_of": "2023-09-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28588,7 +27602,7 @@
           }
         },
         {
-          "as_of": "2023-12-11",
+          "as_of": "2023-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -28604,7 +27618,7 @@
           }
         },
         {
-          "as_of": "2024-03-11",
+          "as_of": "2024-03-12",
           "level": "Flag",
           "ordinal": 2,
           "stress_metrics": [],
@@ -28620,7 +27634,7 @@
           }
         },
         {
-          "as_of": "2024-06-11",
+          "as_of": "2024-06-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -28636,7 +27650,7 @@
           }
         },
         {
-          "as_of": "2024-09-11",
+          "as_of": "2024-09-12",
           "level": "Watch",
           "ordinal": 1,
           "stress_metrics": [],
@@ -28652,7 +27666,7 @@
           }
         },
         {
-          "as_of": "2024-12-11",
+          "as_of": "2024-12-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28670,7 +27684,7 @@
           }
         },
         {
-          "as_of": "2025-03-11",
+          "as_of": "2025-03-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -28686,7 +27700,7 @@
           }
         },
         {
-          "as_of": "2025-06-11",
+          "as_of": "2025-06-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28704,7 +27718,7 @@
           }
         },
         {
-          "as_of": "2025-09-11",
+          "as_of": "2025-09-12",
           "level": "Critical",
           "ordinal": 4,
           "stress_metrics": [
@@ -28722,7 +27736,7 @@
           }
         },
         {
-          "as_of": "2025-12-11",
+          "as_of": "2025-12-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -28738,7 +27752,7 @@
           }
         },
         {
-          "as_of": "2026-03-11",
+          "as_of": "2026-03-12",
           "level": "Stress",
           "ordinal": 3,
           "stress_metrics": [
@@ -28756,7 +27770,7 @@
           }
         },
         {
-          "as_of": "2026-06-11",
+          "as_of": "2026-06-12",
           "level": null,
           "ordinal": 0,
           "stress_metrics": [],
@@ -28818,7 +27832,6 @@
         "2021-01-01",
         "2021-04-01",
         "2022-01-01",
-        "2022-10-01",
         "2022-12-31"
       ],
       "timeline": [
@@ -29649,16 +28662,14 @@
       "single_metric_fp_dates": [],
       "note": "downgraded junk March 2020, recovered",
       "stress_detected": true,
-      "clean_before": false,
+      "clean_before": true,
       "clean_after": false,
       "during_dates": [
         "2020-04-01",
         "2020-07-01",
         "2020-10-01"
       ],
-      "before_dates": [
-        "2018-04-01"
-      ],
+      "before_dates": [],
       "after_dates": [
         "2021-04-01"
       ],
@@ -30321,15 +29332,13 @@
       "single_metric_fp_dates": [],
       "note": "oil-price stress 2020, recovered",
       "stress_detected": true,
-      "clean_before": false,
+      "clean_before": true,
       "clean_after": false,
       "during_dates": [
         "2020-07-01",
         "2020-10-01"
       ],
-      "before_dates": [
-        "2019-04-01"
-      ],
+      "before_dates": [],
       "after_dates": [
         "2021-01-01",
         "2021-04-01",
@@ -31035,11 +30044,7 @@
         "2021-07-01",
         "2021-10-01",
         "2022-01-01",
-        "2022-07-01",
-        "2022-10-01",
-        "2023-01-01",
-        "2023-04-01",
-        "2023-06-30"
+        "2022-07-01"
       ],
       "timeline": [
         {
@@ -32696,11 +31701,7 @@
       "during_dates": [
         "2018-01-01",
         "2018-04-01",
-        "2018-07-01",
-        "2018-10-01",
         "2019-01-01",
-        "2019-04-01",
-        "2019-07-01",
         "2019-10-01",
         "2020-01-01",
         "2020-04-01",
@@ -33733,7 +32734,6 @@
         "2021-01-01",
         "2021-04-01",
         "2021-07-01",
-        "2022-01-01",
         "2022-07-01",
         "2022-10-01",
         "2022-12-31"
@@ -37626,6 +36626,1509 @@
             "liquidation_asset_coverage": 4,
             "maturity_coverage_near_term": 0,
             "covenant_headroom_leverage": 2,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pfizer",
+      "cik": "0000078003",
+      "event_date": null,
+      "stress_start": "2023-01-01",
+      "stress_end": "2024-12-31",
+      "resolved_name": "PFIZER INC",
+      "status": "detected_noisy",
+      "first_stress_date": "2023-10-01",
+      "lead_days": null,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "maturity_coverage_near_term"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "post-COVID revenue cliff 2023-2024 \u2014 vaccine revenue collapsed ~40%; leverage and margin compressed severely; recovering 2024-2025",
+      "stress_detected": true,
+      "clean_before": true,
+      "clean_after": false,
+      "during_dates": [
+        "2023-10-01",
+        "2024-01-01",
+        "2024-04-01",
+        "2024-07-01",
+        "2024-10-01"
+      ],
+      "before_dates": [],
+      "after_dates": [
+        "2025-01-01",
+        "2025-04-01",
+        "2025-07-01",
+        "2025-10-01",
+        "2026-01-01",
+        "2026-04-01",
+        "2026-06-12"
+      ],
+      "timeline": [
+        {
+          "as_of": "2021-01-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 2,
+          "latest_period": "2020-09-27",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 2,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-04-01",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2020-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 2,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-07-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-04-04",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-10-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-07-04",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-01-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-10-03",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-04-01",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 1,
+          "latest_period": "2021-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 1,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 0,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 1,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-07-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2022-04-03",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-10-01",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2022-07-03",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 1,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-01-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 2,
+          "latest_period": "2022-10-02",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 2,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-04-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 1,
+          "latest_period": "2022-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 0,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 1,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 4,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-07-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2023-04-02",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 2,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 2,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-10-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "ocf_ebitda_conversion",
+            "rcf_net_debt",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-07-02",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 3,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 4,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 1,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 2,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-01-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "liquidation_asset_coverage",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 5,
+          "latest_period": "2023-10-01",
+          "metric_alerts": {
+            "leverage": 2,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 1,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-04-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "ebitda_margin",
+            "interest_coverage",
+            "leverage",
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 8,
+          "latest_period": "2023-12-31",
+          "metric_alerts": {
+            "leverage": 3,
+            "interest_coverage": 4,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 3,
+            "quick_ratio": 1,
+            "ebitda_margin": 4,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 2,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-07-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "interest_coverage",
+            "leverage",
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "rcf_net_debt",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 11,
+          "latest_period": "2024-03-31",
+          "metric_alerts": {
+            "leverage": 3,
+            "interest_coverage": 4,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 2,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 3,
+            "current_ratio": 2,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 4,
+            "covenant_headroom_leverage": 2,
+            "covenant_headroom_coverage": 2,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-10-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "current_ratio",
+            "interest_coverage",
+            "leverage",
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "rcf_net_debt"
+          ],
+          "flag_count": 12,
+          "latest_period": "2024-06-30",
+          "metric_alerts": {
+            "leverage": 3,
+            "interest_coverage": 4,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 3,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 4,
+            "current_ratio": 3,
+            "quick_ratio": 1,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 4,
+            "covenant_headroom_leverage": 2,
+            "covenant_headroom_coverage": 2,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-01-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "leverage",
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 5,
+          "latest_period": "2024-09-29",
+          "metric_alerts": {
+            "leverage": 3,
+            "interest_coverage": 1,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 2,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 4,
+            "covenant_headroom_leverage": 2,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-04-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 4,
+          "latest_period": "2024-12-31",
+          "metric_alerts": {
+            "leverage": 1,
+            "interest_coverage": 1,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 2,
+            "quick_ratio": 0,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 4,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-07-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 4,
+          "latest_period": "2025-03-30",
+          "metric_alerts": {
+            "leverage": 1,
+            "interest_coverage": 1,
+            "free_cash_flow": 1,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 2,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-10-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "ocf_ebitda_conversion",
+            "rcf_net_debt"
+          ],
+          "flag_count": 7,
+          "latest_period": "2025-06-29",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 3,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 4,
+            "current_ratio": 2,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-01-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2025-09-28",
+          "metric_alerts": {
+            "leverage": 1,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 1,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-04-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 4,
+          "latest_period": "2025-12-31",
+          "metric_alerts": {
+            "leverage": 1,
+            "interest_coverage": 1,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 2,
+            "quick_ratio": 0,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 1,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-06-12",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "liquidation_asset_coverage",
+            "maturity_coverage_near_term"
+          ],
+          "flag_count": 3,
+          "latest_period": "2026-03-29",
+          "metric_alerts": {
+            "leverage": 1,
+            "interest_coverage": 1,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 2,
+            "current_ratio": 1,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 1,
+            "liquidation_asset_coverage": 3,
+            "maturity_coverage_near_term": 3,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Texas Instruments",
+      "cik": "0000097476",
+      "event_date": null,
+      "stress_start": "2023-01-01",
+      "stress_end": "2024-06-30",
+      "resolved_name": "TEXAS INSTRUMENTS INC",
+      "status": "detected_noisy",
+      "first_stress_date": "2023-10-01",
+      "lead_days": null,
+      "peak_level": "Critical",
+      "peak_stress_metrics": [
+        "rcf_net_debt",
+        "revenue_yoy_growth"
+      ],
+      "single_metric_first_date": null,
+      "n_preevent_quarters": 8,
+      "fp_dates": [],
+      "single_metric_fp_dates": [],
+      "note": "semiconductor down-cycle 2023 \u2014 revenue dropped ~20%; EBITDA margin compressed; recovering 2024",
+      "stress_detected": true,
+      "clean_before": true,
+      "clean_after": false,
+      "during_dates": [
+        "2023-10-01",
+        "2024-01-01",
+        "2024-04-01"
+      ],
+      "before_dates": [],
+      "after_dates": [
+        "2024-07-01",
+        "2024-10-01"
+      ],
+      "timeline": [
+        {
+          "as_of": "2021-01-01",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2020-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 1,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-04-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2020-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-07-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2021-10-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-06-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-01-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-04-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2021-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-07-01",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2022-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2022-10-01",
+          "level": "Watch",
+          "ordinal": 1,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2022-06-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 1,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-01-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2022-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-04-01",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 3,
+          "latest_period": "2022-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 2,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-07-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "rcf_net_debt",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2023-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 1,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 3,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 2,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 2,
+            "asset_coverage": 1,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2023-10-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 7,
+          "latest_period": "2023-06-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 1,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 2,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 2,
+            "asset_coverage": 1,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-01-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2023-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-04-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2023-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-07-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "rcf_net_debt",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 6,
+          "latest_period": "2024-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 4,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2024-10-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "ebitda_margin",
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 4,
+          "latest_period": "2024-06-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 2,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 3,
+            "revenue_yoy_growth": 4,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-01-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 3,
+          "latest_period": "2024-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 2,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-04-01",
+          "level": "Stress",
+          "ordinal": 3,
+          "stress_metrics": [
+            "revenue_yoy_growth"
+          ],
+          "flag_count": 2,
+          "latest_period": "2024-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 2,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 1,
+            "revenue_yoy_growth": 3,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-07-01",
+          "level": "Critical",
+          "ordinal": 4,
+          "stress_metrics": [
+            "rcf_net_debt"
+          ],
+          "flag_count": 4,
+          "latest_period": "2025-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 2,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 2,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 4,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 1,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2025-10-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-06-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-01-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-09-30",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-04-01",
+          "level": null,
+          "ordinal": 0,
+          "stress_metrics": [],
+          "flag_count": 0,
+          "latest_period": "2025-12-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 0,
+            "rcf_net_debt": 0,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
+            "covenant_headroom_coverage": 0,
+            "loss_provisions_balance": 0
+          }
+        },
+        {
+          "as_of": "2026-06-12",
+          "level": "Flag",
+          "ordinal": 2,
+          "stress_metrics": [],
+          "flag_count": 2,
+          "latest_period": "2026-03-31",
+          "metric_alerts": {
+            "leverage": 0,
+            "interest_coverage": 0,
+            "free_cash_flow": 0,
+            "fcf_margin": 0,
+            "ocf_ebitda_conversion": 0,
+            "moody_adjusted_fcf": 2,
+            "rcf_net_debt": 2,
+            "current_ratio": 0,
+            "quick_ratio": 0,
+            "ebitda_margin": 0,
+            "revenue_yoy_growth": 0,
+            "debt_to_equity": 0,
+            "asset_coverage": 0,
+            "tangible_asset_coverage": 0,
+            "liquidation_asset_coverage": 0,
+            "maturity_coverage_near_term": 0,
+            "covenant_headroom_leverage": 0,
             "covenant_headroom_coverage": 0,
             "loss_provisions_balance": 0
           }
