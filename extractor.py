@@ -276,7 +276,11 @@ CONCEPTS: dict[str, Concept] = {
     # Moody's Formula-2 FCF inputs (Group 7a). All duration items on the cash-flow statement.
     "pension_contributions": Concept(
         "pension_contributions", "duration", "first",
-        ("PensionContributions", "PaymentsForPensionAndOtherPostretirementBenefits"),
+        ("PensionContributions", "PaymentsForPensionAndOtherPostretirementBenefits",
+         "DefinedBenefitPlanContributionsByEmployer"),
+        flag_tags={"DefinedBenefitPlanContributionsByEmployer":
+                   "pension contributions from DefinedBenefitPlanContributionsByEmployer "
+                   "(pension-footnote employer-contributions tag) — missing in 62/75 issuers without it"},
     ),
     "dividends_common": Concept(
         "dividends_common", "duration", "first",
