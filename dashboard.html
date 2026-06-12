@@ -97,7 +97,9 @@
   <section class="card">
     <h2>3 · Statistical Analysis — Cohen's d Separation
       <span class="tag">EXPLORATORY — 30 distressed cases, Cohen (1988) benchmarks</span></h2>
-    <canvas id="cohenChart" height="200"></canvas>
+    <div style="position:relative; height:520px;">
+      <canvas id="cohenChart"></canvas>
+    </div>
     <div class="legend"><span style="color:var(--good)">■ d &gt; 0.8 large</span>
       <span style="color:var(--warn)">■ d &gt; 0.5 medium</span>
       <span style="color:var(--bad)">■ d &lt; 0.5 small</span></div>
@@ -203,11 +205,18 @@ function renderCohen(){
   const colors=vals.map(d=> d>0.8 ? '#16a34a' : (d>0.5 ? '#d97706' : '#dc2626'));
   new Chart(document.getElementById("cohenChart"),{type:'bar',
     data:{labels,datasets:[{data:vals,backgroundColor:colors,borderRadius:3}]},
-    options:{indexAxis:'y',plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:c=>"Cohen's d = "+c.parsed.x.toFixed(2)}}},
-      scales:{x:{grid:{color:'#eef0f2'},ticks:{font:{family:'monospace',size:11}},title:{display:true,text:"Cohen's d (distressed vs healthy, [0,4] ordinal)"}},
-        y:{grid:{display:false},ticks:{font:{family:'monospace',size:10.5}}}},
-      maintainAspectRatio:false}});
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>"Cohen's d = "+c.parsed.x.toFixed(2)}}},
+      scales:{
+        x:{min:-0.5,max:2.5,grid:{color:'#eef0f2'},ticks:{font:{family:'monospace',size:11}},
+           title:{display:true,text:"Cohen's d"}},
+        y:{grid:{display:false},ticks:{font:{family:'monospace',size:11}}}
+      }
+    }});
 }
 
 // ---- Section 4 ----
