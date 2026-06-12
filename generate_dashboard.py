@@ -389,12 +389,12 @@ TEMPLATE = r"""<!DOCTYPE html>
       <div class="scroll"><table>
         <thead><tr><th>Metric</th><th class="num">Cohen d</th><th>95% CI</th><th>OR</th><th>p</th><th>Rationale</th></tr></thead>
         <tbody>
-          <tr><td class="mono">leverage</td><td class="num">+1.54</td><td class="mono">[+0.85,+2.24]</td><td class="mono">5.73</td><td class="mono">&lt;0.05</td><td class="why">Large effect — Altman (1968) benchmark. Zero false positives.</td></tr>
-          <tr><td class="mono">interest_coverage</td><td class="num">+1.52</td><td class="mono">[+0.83,+2.22]</td><td class="mono">3.09</td><td class="mono">&lt;0.05</td><td class="why">Large effect — only metric with d&gt;1.5 AND zero false positives across 31 controls.</td></tr>
-          <tr><td class="mono">free_cash_flow</td><td class="num">+0.83</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Medium-large effect. Reliable FCF signal.</td></tr>
+          <tr><td class="mono">leverage</td><td class="num">+1.76</td><td class="mono">—</td><td class="mono">5.73</td><td class="mono">&lt;0.05</td><td class="why">Large effect — Altman (1968) benchmark. Zero false positives.</td></tr>
+          <tr><td class="mono">interest_coverage</td><td class="num">+1.68</td><td class="mono">—</td><td class="mono">3.09</td><td class="mono">&lt;0.05</td><td class="why">Large effect — only metric with d&gt;1.5 AND zero false positives across 31 controls.</td></tr>
+          <tr><td class="mono">free_cash_flow</td><td class="num">+0.80</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Medium-large effect. Reliable FCF signal.</td></tr>
           <tr><td class="mono">quick_ratio</td><td class="num">+0.49</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Retained — liquidity signal. Sector-adjusted thresholds.</td></tr>
-          <tr><td class="mono">ebitda_margin</td><td class="num">+0.12</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Retained — trend signal across all sectors.</td></tr>
-          <tr><td class="mono">maturity_coverage</td><td class="num">+0.21</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Structural near-term liquidity signal.</td></tr>
+          <tr><td class="mono">ebitda_margin</td><td class="num">+0.15</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Retained — trend signal across all sectors.</td></tr>
+          <tr><td class="mono">maturity_coverage</td><td class="num">+0.12</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Structural near-term liquidity signal.</td></tr>
           <tr><td class="mono">(13 others)</td><td class="num">various</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="why">Retained pending larger sample (n≥50 recommended for threshold recalibration).</td></tr>
         </tbody>
       </table></div>
@@ -407,9 +407,9 @@ TEMPLATE = r"""<!DOCTYPE html>
       <div class="scroll"><table>
         <thead><tr><th>Metric</th><th class="num">Cohen d</th><th>95% CI</th><th>OR</th><th>p</th><th>Rationale</th></tr></thead>
         <tbody>
-          <tr><td class="mono">current_ratio</td><td class="num">−0.03</td><td class="mono">[−0.65,+0.59]</td><td class="mono">0.98</td><td class="mono">0.92</td><td class="why">Statistically inert — fires equally on healthy and distressed. Altman (1968) found current ratio to be a weak standalone predictor.</td></tr>
-          <tr><td class="mono">debt_to_equity</td><td class="num">+1.16</td><td class="mono">—</td><td class="mono">2.04</td><td class="mono">&lt;0.01</td><td class="why">Capital structure artifact — 66 Critical-quarters on 31 healthy controls vs 18 on 30 distressed. Fires on buyback-heavy IG companies with negative book equity.</td></tr>
-          <tr><td class="mono">rcf_net_debt</td><td class="num">+1.35</td><td class="mono">[+0.67,+2.03]</td><td class="mono">2.85</td><td class="mono">&lt;0.01</td><td class="why">Low sensitivity — Stress+ in only 50% of distressed at first signal. Dividend seasonality causes RCF&lt;0 in payout quarters for healthy IG companies.</td></tr>
+          <tr><td class="mono">current_ratio</td><td class="num">−0.05</td><td class="mono">—</td><td class="mono">0.98</td><td class="mono">0.92</td><td class="why">Statistically inert — fires equally on healthy and distressed. Altman (1968) found current ratio to be a weak standalone predictor.</td></tr>
+          <tr><td class="mono">debt_to_equity</td><td class="num">+1.06</td><td class="mono">—</td><td class="mono">2.04</td><td class="mono">&lt;0.01</td><td class="why">Capital structure artifact — 66 Critical-quarters on 31 healthy controls vs 18 on 30 distressed. Fires on buyback-heavy IG companies with negative book equity.</td></tr>
+          <tr><td class="mono">rcf_net_debt</td><td class="num">+1.30</td><td class="mono">—</td><td class="mono">2.85</td><td class="mono">&lt;0.01</td><td class="why">Low sensitivity — Stress+ in only 50% of distressed at first signal. Dividend seasonality causes RCF&lt;0 in payout quarters for healthy IG companies.</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -417,7 +417,7 @@ TEMPLATE = r"""<!DOCTYPE html>
     <div class="method">Statistical benchmarks: Cohen (1988) d guidelines: 0.2=small, 0.5=medium, 0.8=large.
       Only leverage and interest_coverage reach Altman (1968) benchmark separation (d&gt;1.2) with CI lower bound
       above 0.8. Reference: Altman, E.I. (1968). Journal of Finance, 23(4), 589–609. All findings exploratory —
-      n=30 distressed cases.</div>
+      n=30 distressed cases, 33 healthy controls.</div>
   </section>
 
   <!-- Section 4 -->
