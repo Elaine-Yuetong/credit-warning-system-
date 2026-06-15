@@ -467,6 +467,9 @@ Implement sub-sector classification within the nine groups using NAICS 6-digit c
 
 
 
+
+
+
 **Here is the full sub-sector spec text to add to Section 2:**
 
 ---
@@ -569,3 +572,629 @@ The following sectors do not have defined sub-sectors in this spec. All companie
 
 **Phase 5 note:** As the database expands beyond 200 companies, sub-sector definitions should be added for Manufacturing/Industrials (aerospace vs auto vs chemicals vs consumer products) and Retail (grocery vs pharmacy vs specialty vs department). The minimum viable sample for a sub-sector benchmark cell is 5 companies; 10+ is preferred.
 
+---
+
+## Section 3 — Benchmark Table Construction
+
+---
+
+### What it is
+
+The benchmark table is a pre-computed statistical summary of metric distributions across all companies in each sector × size × sub-sector cell. It answers the question: "for a company of this type and size, what is the normal range of values for each of the 19 metrics?" The benchmark table is the analytical foundation for all peer-relative comparisons in the Streamlit app and dashboard.
+
+The benchmark table does not generate alerts. It is a reference layer — a statistical description of peer behavior that provides context for interpreting a specific company's metrics. A leverage ratio of 5x is unambiguously Critical by absolute threshold. But whether 5x is typical or unusual for a Large-cap Energy/E&P company requires the benchmark table to answer.
+
+---
+
+### What it is not
+
+The benchmark table is not a replacement for the existing volatility-adjusted alert thresholds defined in `LEVERAGE.md`, `INTEREST_COVERAGE.md`, and `thresholds.py`. Those thresholds remain the primary alert generation mechanism. The benchmark table is supplementary context — displayed alongside metric values to show relative position within the peer group, not to override the alert level.
+
+---
+
+### Cell Definition
+
+Each benchmark is computed for a specific combination of three segmentation dimensions:
+
+```
+Cell key = (sector_group, size_category, sub_sector)
+
+Where:
+  sector_group   — one of the 9 sector groups from Section 2
+  size_category  — Large / Mid / Small (Section 1)
+  sub_sector     — sub-sector tag if defined (Section 2), or NULL for 
+                   sectors without sub-sector definitions
+
+Examples:
+  ("Healthcare/Pharma", "Large", "branded_pharma")
+  ("Energy/Mining",     "Small", "ep_independent")
+  ("Retail/Wholesale",  "Mid",   NULL)
+  ("Manufacturing",     "Large", NULL)
+```
+
+---
+
+### Metric Selection for Benchmarking
+
+Not all 19 metrics are appropriate for peer comparison. Three metrics are excluded from benchmark computation:
+
+| Metric | Reason excluded |
+|---|---|
+| `covenant_headroom_leverage` | Depends on individual covenant threshold — not comparable across companies without knowing each company's specific covenant level |
+| `covenant_headroom_coverage` | Same reason |
+| `loss_provisions_balance` | Dollar amount — not comparable across companies of different sizes without normalisation; the alert tier (1–5) is the meaningful signal, not the absolute dollar amount |
+
+The remaining **16 metrics** are included in the benchmark table:
+
+`leverage`, `interest_coverage`, `free_cash_flow`, `fcf_margin`, `moody_adjusted_fcf`, `rcf_net_debt`, `ocf_ebitda_conversion`, `current_ratio`, `quick_ratio`, `debt_to_equity`, `ebitda_margin`, `revenue_yoy_growth`, `asset_coverage`, `tangible_asset_coverage`, `liquidation_asset_coverage`, `maturity_coverage_near_term`
+
+Note: `free_cash_flow` and `moody_adjusted_fcf` are dollar amounts. For these two metrics the benchmark is computed as a percentage of revenue (i.e. FCF margin equivalent) rather than the raw dollar value, to enable cross-company comparison regardless of company size. Store both the raw dollar benchmark and the revenue-normalised benchmark.
+
+---
+
+### Computation Methodology
+
+**Step 1 — Data selection:**
+
+For each company in the database, select the single most recent non-null value for each metric across all stored periods:
+
+```sql
+SELECT m.cik, m.metric_name, m.value, m.period_end_date
+FROM metric_values m
+INNER JOIN (
+    SELECT cik, metric_name, MAX(period_end_date) as latest
+    FROM metric_values
+    WHERE value IS NOT NULL
+    AND alert_level IS NOT NULL          -- exclude suppressed metrics
+    AND metric_name NOT IN (
+        'covenant_headroom_leverage',
+        'covenant_headroom_coverage',
+        'loss_provisions_balance'
+    )
+    GROUP BY cik, metric_name
+) latest ON m.cik = latest.cik
+    AND m.metric_name = latest.metric_name
+    AND m.period_end_date = latest.latest
+WHERE m.value IS NOT NULL
+```
+
+**Step 2 — Group by cell:**
+
+Join against the `issuers` table to get `sector_group`, `size_category`, and `sub_sector` for each CIK. Group the metric values by cell key.
+
+**Step 3 — Apply minimum sample rule:**
+
+```
+For each (sector_group, size_category, sub_sector, metric_name) cell:
+
+IF company_count >= 3:
+    Compute p25, p50 (median), p75 using the values in the cell
+    Store with the full cell key
+    
+IF company_count == 2:
+    Fall back to (sector_group, size_category, NULL) — ignore sub_sector
+    Recheck company_count at this broader cell
+    
+IF company_count == 1 at sector+size level:
+    Fall back to (sector_group, NULL, NULL) — ignore size dimension
+    Recheck company_count at sector-only level
+    
+IF company_count < 3 at sector-only level:
+    No benchmark available for this metric in this sector
+    Store as NULL with note: "insufficient sample — 
+    sector has fewer than 3 companies with data for this metric"
+```
+
+The fallback cascade ensures the system always uses the most specific available benchmark without producing statistically meaningless single-company "benchmarks."
+
+**Step 4 — Compute percentiles:**
+
+```python
+from statistics import quantiles
+
+def compute_percentiles(values: list[float]) -> tuple[float, float, float]:
+    """Returns (p25, p50, p75). Requires len(values) >= 3."""
+    if len(values) < 3:
+        return None, None, None
+    qs = quantiles(values, n=4)   # returns [p25, p50, p75]
+    return qs[0], qs[1], qs[2]
+```
+
+Use Python's `statistics.quantiles` with `n=4` for quartile computation. Do not use numpy — the system uses stdlib only for the benchmark computation layer.
+
+**Step 5 — Exclude outliers before computing percentiles:**
+
+Companies in active bankruptcy or post-emergence restructuring produce metric values (leverage of 50x, negative equity) that distort the peer distribution. Exclude values beyond 3 standard deviations from the cell mean before computing percentiles:
+
+```python
+def exclude_outliers(values: list[float]) -> list[float]:
+    """Winsorise at 3 standard deviations. Applied before percentile computation."""
+    if len(values) < 4:
+        return values   # too few to reliably detect outliers
+    mean = sum(values) / len(values)
+    variance = sum((v - mean) ** 2 for v in values) / len(values)
+    std = variance ** 0.5
+    return [v for v in values if abs(v - mean) <= 3 * std]
+```
+
+Flag when outliers were excluded: "N outlier values excluded from benchmark — distressed/post-bankruptcy values removed from peer distribution."
+
+---
+
+### Database Schema
+
+Add a new table `sector_benchmarks` to `credit_warning.db`:
+
+```sql
+CREATE TABLE sector_benchmarks (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_group    TEXT NOT NULL,
+    size_category   TEXT NOT NULL,       -- Large / Mid / Small / ALL
+    sub_sector      TEXT,                -- NULL for sectors without sub-sectors
+    metric_name     TEXT NOT NULL,
+    p25             REAL,
+    p50             REAL,
+    p75             REAL,
+    company_count   INTEGER NOT NULL,
+    fallback_level  TEXT NOT NULL,       -- full / no_subsector / sector_only
+    outliers_excluded INTEGER DEFAULT 0, -- count of outlier values removed
+    computed_at     TEXT NOT NULL,       -- ISO datetime of last computation
+    UNIQUE (sector_group, size_category, sub_sector, metric_name)
+);
+```
+
+`fallback_level` records which level of the cascade was used:
+- `full` — computed at the full (sector × size × sub_sector) cell
+- `no_subsector` — sub_sector dimension dropped, computed at (sector × size)
+- `sector_only` — size dimension also dropped, computed at sector level only
+
+This allows the display layer to communicate benchmark precision to the analyst: "benchmark from 12 companies in same sector/size/sub-sector" vs "benchmark from 8 companies in same sector/size (sub-sector insufficient)" vs "benchmark from 23 companies in same sector only."
+
+---
+
+### Update Trigger
+
+The benchmark table is recomputed in full whenever:
+
+1. A new company is added to the database (any `cli.py` run for a new CIK)
+2. The `sub_sector` column is updated for any issuer
+3. The `size_category` column is updated for any issuer
+4. The analyst explicitly calls `python benchmarks.py --recompute`
+
+Partial recomputation (updating only the affected cell) is not implemented in Phase 4. Full recomputation across all cells takes less than 1 second for a 75-company database and less than 10 seconds at 500 companies. Partial recomputation is a Phase 5 optimisation for databases exceeding 1,000 companies.
+
+---
+
+### Implementation File
+
+The benchmark computation is implemented in a new file `benchmarks.py` — not in `extractor.py`, `metrics.py`, or `thresholds.py`. This keeps the benchmark layer cleanly separated from the extraction and alert layers.
+
+`benchmarks.py` exposes two public functions:
+
+```python
+def recompute_all_benchmarks(db_path: str = "credit_warning.db") -> dict:
+    """Recompute all sector_benchmarks rows from current metric_values data.
+    Returns a summary dict: {cell_key: company_count} for all computed cells."""
+
+def get_benchmark(db_path: str, cik: str, metric_name: str) -> dict | None:
+    """Return the benchmark row for a specific company and metric.
+    Automatically applies the fallback cascade to find the most specific
+    available benchmark. Returns None if no benchmark available.
+    
+    Return format:
+    {
+        "p25": float,
+        "p50": float,
+        "p75": float,
+        "company_count": int,
+        "fallback_level": str,
+        "cell_description": str   # e.g. "Large Healthcare/Pharma — branded_pharma (8 companies)"
+    }
+    """
+```
+
+`recompute_all_benchmarks()` is called automatically at the end of every `cli.py` run for a new CIK. `get_benchmark()` is called by the Streamlit monitor page and the dashboard generator when displaying the "vs peer median" indicator.
+
+---
+
+### Metric Polarity
+
+The benchmark comparison must know which direction is better for each metric. This is defined once here and referenced by all display components.
+
+| Metric | Polarity | Why |
+|---|---|---|
+| `leverage` | Lower is better | Higher leverage = more debt relative to earnings |
+| `interest_coverage` | Higher is better | Higher coverage = more earnings buffer above interest costs |
+| `free_cash_flow` | Higher is better | More FCF = more cash generated |
+| `fcf_margin` | Higher is better | More FCF per dollar of revenue |
+| `moody_adjusted_fcf` | Higher is better | More adjusted FCF after debt service obligations |
+| `rcf_net_debt` | Higher is better | More retained cash flow relative to debt |
+| `ocf_ebitda_conversion` | Higher is better | Better conversion of accounting earnings to cash |
+| `current_ratio` | Higher is better | More current assets relative to current liabilities |
+| `quick_ratio` | Higher is better | More liquid assets relative to current liabilities |
+| `debt_to_equity` | Lower is better | Less debt relative to equity cushion |
+| `ebitda_margin` | Higher is better | More operating earnings per dollar of revenue |
+| `revenue_yoy_growth` | Higher is better | Growing revenue reduces refinancing risk |
+| `asset_coverage` | Higher is better | More assets backing each dollar of debt |
+| `tangible_asset_coverage` | Higher is better | More tangible assets backing each dollar of debt |
+| `liquidation_asset_coverage` | Higher is better | More recoverable asset value in distress scenario |
+| `maturity_coverage_near_term` | Higher is better | More liquidity coverage of near-term debt maturities |
+
+**Polarity-adjusted quartile classification:**
+
+```
+For higher-is-better metrics:
+  value > p75  →  Top quartile    (green — above peer median + buffer)
+  p50–p75      →  Upper middle    (neutral)
+  p25–p50      →  Lower middle    (neutral)
+  value < p25  →  Bottom quartile (red — below most peers)
+
+For lower-is-better metrics (leverage, debt_to_equity):
+  value < p25  →  Top quartile    (green — lower leverage than most peers)
+  p25–p50      →  Upper middle    (neutral)
+  p50–p75      →  Lower middle    (neutral)
+  value > p75  →  Bottom quartile (red — higher leverage than most peers)
+```
+
+---
+
+### Known Limitations and Model Boundary Conditions
+
+---
+
+**Limitation 1 — Sparse Cells Dominate the Current Database**
+
+**Problem:**
+At n=75 companies across 9 sectors × 3 size tiers × up to 4 sub-sectors, most cells have fewer than 3 companies and trigger the fallback cascade. The effective benchmark for most companies is sector-only (no size dimension), which partially defeats the purpose of size-adjusted benchmarking described in Section 1.
+
+**Materiality:**
+High for the current database. A representative cell count by sector and size:
+
+| Sector | Large | Mid | Small |
+|---|---|---|---|
+| Retail/Wholesale | 3 | 5 | 0 |
+| Energy/Mining | 2 | 5 | 1 |
+| Manufacturing/Industrials | 5 | 4 | 1 |
+| Healthcare/Pharma | 3 | 2 | 2 |
+| Technology/Services | 2 | 3 | 0 |
+
+Most cells fall below the 3-company minimum when the sub_sector dimension is added. The fallback to sector-only is the common path, not the exception.
+
+**Interim mitigation:**
+`fallback_level` field in the `sector_benchmarks` table and in the display output communicates benchmark precision to the analyst. Sparse benchmarks are labeled "directional only — fewer than 5 companies in peer group."
+
+**Phase 5 fix:**
+Expand the company database to 200+ issuers with deliberate coverage of all sector × size cells. Target minimum 5 companies per cell before sub_sector is added; 10+ companies per sub_sector cell. This is a data expansion task, not an analytical methodology change.
+
+---
+
+**Limitation 2 — Latest-Period Selection Introduces Point-in-Time Bias**
+
+**Problem:**
+The benchmark uses the most recent available value for each company. If the database contains a distressed company whose latest period reflects severe stress (leverage 15x, negative coverage), that value is included in the peer distribution even though the company is no longer operating normally. This pulls the peer distribution toward distress and makes the benchmarks appear more stressed than they would be for a healthy-company-only peer group.
+
+**Materiality:**
+Moderate. The 30 distressed companies in the current database contribute stressed values to the sector benchmarks. A retailer searching for Retail sector benchmarks will see a distribution that includes Rite Aid, Bed Bath & Beyond, Sears, and Party City — all of which had severely stressed metrics before bankruptcy. This may make a mildly leveraged healthy retailer appear above the sector median when the comparison is actually against a distress-skewed distribution.
+
+**Interim mitigation:**
+The outlier exclusion step (±3 standard deviations) removes the most extreme distressed values. Additionally, the `fallback_level` display notes how many companies contributed to the benchmark — if the analyst sees "8 companies in peer group" and knows the database contains 8 retailers, they can infer the benchmark includes distressed names.
+
+**Phase 5 fix:**
+Implement a `benchmark_exclude` flag in the `issuers` table. Companies with `benchmark_exclude = True` are omitted from benchmark computation but retained for all other system functions. Set `benchmark_exclude = True` for all distressed companies in the case library — their metrics reflect pre-bankruptcy deterioration, not healthy peer behavior. Compute two benchmark sets: all-companies (current behavior) and healthy-only (excluding distressed cases). Display both with clear labeling.
+
+---
+
+**Limitation 3 — Single Latest Period Does Not Capture Cyclical Context**
+
+**Problem:**
+The benchmark uses a single latest-period value per company. For highly cyclical sectors (Energy, Media, Manufacturing), a single period's metrics reflect the cyclical position at that moment — not the through-the-cycle average that credit analysts typically use. An energy company benchmark computed in Q2 2020 (oil price collapse) produces completely different medians than the same benchmark computed in Q3 2022 (oil price peak). The benchmark is therefore sensitive to when it was last computed.
+
+**Materiality:**
+High for Energy/Mining. Moderate for Manufacturing and Media. Low for Technology and Healthcare.
+
+**Interim mitigation:**
+Document the `computed_at` timestamp on all benchmarks. Flag energy and cyclical sector benchmarks with "cyclical sector — benchmark reflects conditions at [date]; interpret with awareness of commodity cycle position."
+
+**Phase 5 fix:**
+Implement through-the-cycle benchmarks for cyclical sectors: compute the median of each company's 8-quarter average value (rather than the latest single value) before computing the peer distribution. This produces a benchmark that represents mid-cycle behavior rather than a point-in-time snapshot. Requires all 75 companies to have a full 8-quarter history in the database, which the current system already stores.
+
+---
+
+### Cross-References
+
+- Size category used as benchmark cell dimension: `SEGMENT_BENCHMARK_SPEC.md` → Section 1
+- Sector group and sub-sector used as benchmark cell dimensions: `SEGMENT_BENCHMARK_SPEC.md` → Section 2
+- `metric_values` table schema (source data for benchmark computation): `SECTION_6.md` → Section 6.3 → Table 3
+- `issuers` table schema (sector_group, size_category, sub_sector fields): `SECTION_6.md` → Section 6.3 → Table 1
+- Financial institution suppression (excluded from all benchmark cells): `SECTION_6.md` → Section 6.5
+- Metric polarity used by display layer: referenced by `generate_dashboard.py` and `pages/02_monitor.py` (Streamlit)
+
+
+---
+
+**Addition A — `get_benchmark()` fallback implementation (add after the function signature):**
+
+> The fallback cascade can be implemented in a single SQL query using `ORDER BY` on the `fallback_level` column. The following is one correct implementation — application-level cascade logic with separate queries is equally valid:
+>
+> ```sql
+> SELECT p25, p50, p75, company_count, fallback_level,
+>        sector_group, size_category, sub_sector
+> FROM sector_benchmarks
+> WHERE metric_name = :metric_name
+>   AND sector_group = :sector_group
+>   AND (
+>       (size_category = :size_category AND sub_sector = :sub_sector)
+>    OR (size_category = :size_category AND sub_sector IS NULL)
+>    OR (size_category = 'ALL'          AND sub_sector IS NULL)
+>   )
+> ORDER BY
+>   CASE fallback_level
+>     WHEN 'full'          THEN 1
+>     WHEN 'no_subsector'  THEN 2
+>     WHEN 'sector_only'   THEN 3
+>   END
+> LIMIT 1
+> ```
+>
+> Note: `size_category = 'ALL'` is the stored value for sector-only rows (no size dimension). This must match the value written by `recompute_all_benchmarks()` when the size dimension is dropped during the fallback cascade.
+
+---
+
+**Addition B — `benchmark_exclude` column (add to database schema section):**
+
+> Add to `issuers` table: `benchmark_exclude INTEGER DEFAULT 0`. When set to 1, the company is excluded from all `recompute_all_benchmarks()` computations but retained for all other system functions (extraction, alerts, display, backtest). Default 0 for all companies. Set to 1 manually for known distressed cases in the current database — this is a Phase 5 task; do not set at Phase 4 implementation time.
+
+---
+
+**Addition C — Testing strategy (add as a new subsection at the end of Section 3):**
+
+> **Verification requirements for `benchmarks.py`:**
+>
+> Before committing, verify three behaviors with a hand-curated test case:
+>
+> 1. **Percentile correctness:** Insert 5 companies into a single cell with known metric values `[1.0, 2.0, 3.0, 4.0, 5.0]`. Assert `p25 = 1.75`, `p50 = 3.0`, `p75 = 4.25` (Python `statistics.quantiles` with `n=4`). Verify these match the stored `sector_benchmarks` row after `recompute_all_benchmarks()`.
+>
+> 2. **Fallback cascade:** Insert 2 companies in a full cell (below minimum). Assert `get_benchmark()` returns a row with `fallback_level = 'no_subsector'` or `'sector_only'`, not `'full'`. Assert `get_benchmark()` returns `None` when no level has 3+ companies.
+>
+> 3. **Outlier exclusion:** Insert a cell with values `[1.0, 2.0, 3.0, 4.0, 100.0]`. Assert the 100.0 outlier is excluded and `outliers_excluded = 1` in the stored row.
+>
+> These three checks cover the core logic paths. Add to `test_manual.py` as a new test group — do not create a separate test file.
+
+
+## Section 4 — Metric Evaluation Framework
+
+---
+
+### What it is
+
+The metric evaluation framework defines how a company's metric value is interpreted relative to its peer benchmark. It has two components: **polarity** (which direction is better for each metric) and **quartile classification** (where the company's value falls within the peer distribution).
+
+Together these answer a single question for each metric: is this company performing better or worse than its peers, and by how much?
+
+The evaluation framework is applied after `get_benchmark()` returns a peer distribution for the company's cell. It is purely a display and interpretation layer — it does not modify alert levels, does not feed back into the extraction pipeline, and does not override the existing volatility-adjusted thresholds from `thresholds.py`.
+
+---
+
+### Polarity Definition
+
+Polarity is a permanent property of each metric — it does not change by sector, size, or company. A metric either measures something where more is better (coverage, liquidity, profitability) or something where less is better (leverage, debt burden).
+
+**One exception — polarity inversion for distressed companies:**
+
+For companies already at Critical alert level, `revenue_yoy_growth` polarity inverts in a narrow case: a company with sharply negative revenue that is now declining less quickly (i.e. the rate of decline is slowing) is directionally improving even though growth is still negative. The standard "higher is better" polarity handles this correctly — a less negative growth rate is a higher value, so no inversion is needed. No exception is required; the standard polarity holds.
+
+---
+
+### Full Polarity Table — All 19 Metrics
+
+| # | Metric | `metric_name` | Polarity | Analytical Rationale |
+|---|---|---|---|---|
+| 1 | Leverage | `leverage` | **Lower is better** | Higher leverage = more debt relative to earnings = greater default risk. A company at 8x leverage is more stressed than one at 3x. |
+| 2 | Interest Coverage | `interest_coverage` | **Higher is better** | Higher coverage = more EBITDA buffer above interest obligations. Coverage below 1.0x means EBITDA does not cover interest — acute stress. |
+| 3 | Free Cash Flow | `free_cash_flow` | **Higher is better** | More FCF = more cash generated after operating expenditure and capex. Negative FCF means the company is burning cash. Dollar amount — normalise to FCF margin for cross-company comparison. |
+| 4 | FCF Margin | `fcf_margin` | **Higher is better** | FCF as a percentage of revenue. Higher margin = more cash generated per dollar of revenue. Negative FCF margin = cash-burning operations. |
+| 5 | Moody's Adjusted FCF | `moody_adjusted_fcf` | **Higher is better** | FCF after pension contributions, dividends, and maintenance capex — the cash available to service debt. Negative = insufficient cash generation for debt obligations after baseline commitments. Dollar amount — normalise to revenue for cross-company comparison. |
+| 6 | RCF / Net Debt | `rcf_net_debt` | **Higher is better** | Retained cash flow as a fraction of net debt. Higher ratio = faster de-leveraging capacity. Negative = company is accumulating debt, not repaying it. |
+| 7 | OCF / EBITDA Conversion | `ocf_ebitda_conversion` | **Higher is better** | Fraction of EBITDA that converts to operating cash flow. Higher conversion = earnings quality is high. Very high (>1.5x) may indicate working capital release — review context. Very low (<0.5x) indicates poor earnings quality or large non-cash charges. |
+| 8 | Current Ratio | `current_ratio` | **Higher is better** | More current assets relative to current liabilities = stronger near-term liquidity. Below 1.0x means current liabilities exceed current assets — liquidity stress. |
+| 9 | Quick Ratio | `quick_ratio` | **Higher is better** | Liquid assets (excl. inventory and prepaid) relative to current liabilities. More conservative and analytically preferred over current ratio for credit purposes. |
+| 10 | Debt / Equity | `debt_to_equity` | **Lower is better** | More debt relative to equity cushion = less protection for creditors. Higher D/E means equity absorbs less of a loss before debt is impaired. Exception: negative equity from buybacks makes the ratio meaningless — see special handling below. |
+| 11 | EBITDA Margin | `ebitda_margin` | **Higher is better** | Profitability of core operations. Negative EBITDA margin = operating losses. Highly sector-dependent — compare only within sector using sector-calibrated benchmarks. |
+| 12 | Revenue YoY Growth | `revenue_yoy_growth` | **Higher is better** | Growing revenue provides more operating leverage and reduces refinancing risk. Sustained revenue decline is a leading indicator of credit deterioration. Sector context required — a 5% decline in E&P during a commodity downturn is different from a 5% decline in a pharmacy retail company. |
+| 13 | Asset Coverage | `asset_coverage` | **Higher is better** | Total assets backing each dollar of total debt. More asset coverage = more collateral buffer for creditors. Below 1.0x means total assets are insufficient to cover all debt — acute stress. |
+| 14 | Tangible Asset Coverage | `tangible_asset_coverage` | **Higher is better** | Tangible assets (excluding goodwill, intangibles, DTA) backing each dollar of debt. More conservative than total asset coverage. Negative tangible equity is common for acquisition-heavy companies — flag but do not suppress. |
+| 15 | Liquidation Asset Coverage | `liquidation_asset_coverage` | **Higher is better** | Haircut-adjusted asset value backing each dollar of debt. Represents recovery value in a distress scenario. The most conservative asset coverage metric. Below 0.5x suggests creditors face meaningful principal loss in liquidation. |
+| 16 | Maturity Coverage (near-term) | `maturity_coverage_near_term` | **Higher is better** | Liquidity sources (cash + revolver) relative to debt maturing in Year 1. Coverage > 1.0x means the company can meet near-term maturities from existing liquidity. Coverage < 0.5x is acute liquidity stress — cannot refinance without market access. |
+| 17 | Covenant Headroom (leverage) | `covenant_headroom_leverage` | **Higher is better** | Distance from covenant breach — more headroom = more buffer before a covenant violation. Negative = covenant is already breached. **Excluded from benchmark comparison** — covenant thresholds vary by company and credit agreement; peer comparison is not meaningful. |
+| 18 | Covenant Headroom (coverage) | `covenant_headroom_coverage` | **Higher is better** | Same as covenant headroom leverage. **Excluded from benchmark comparison** for the same reason. |
+| 19 | Loss Provisions Balance | `loss_provisions_balance` | **Lower is better** | Larger loss provision = more probable legal/regulatory liability. However the dollar amount is not comparable across companies of different sizes. **Excluded from benchmark comparison** — use tier classification (1–5) as the primary signal, not the absolute dollar amount. |
+
+---
+
+### Special Handling — Polarity Edge Cases
+
+Three metrics require additional handling beyond simple polarity.
+
+**Debt / Equity — negative equity:**
+
+When shareholders' equity is negative (common for companies with aggressive buyback programs — Apple, Home Depot, McDonald's), the D/E ratio is negative or undefined. A negative D/E does not mean the company is deleveraging — it means book equity has been eliminated by buybacks. Standard polarity ("lower is better") breaks down in this case.
+
+```
+If equity < 0:
+    Set debt_to_equity = null for benchmark comparison purposes
+    Flag: "negative equity — D/E ratio not comparable to peers;
+           capital structure reflects buyback program, not financial stress"
+    Use asset_coverage and leverage as primary debt burden metrics instead
+
+Do NOT exclude the company from the benchmark cell for other metrics.
+Do NOT use the negative D/E value in the peer distribution computation.
+```
+
+This is consistent with the analytical decision to exclude `debt_to_equity` from the confirmation rule (documented in the dashboard Section 3 calibration tables).
+
+**Revenue YoY Growth — first four quarters null:**
+
+Revenue YoY growth requires a prior-year comparison period. For a newly onboarded company, the first four quarters will be null (no prior year data). These null values are excluded from the peer distribution. The benchmark for `revenue_yoy_growth` is therefore computed only from companies that have at least 5 quarters of data in the database.
+
+```
+If value is null for revenue_yoy_growth:
+    Exclude from benchmark distribution computation
+    Display as "— (insufficient history)" in peer comparison
+```
+
+**OCF / EBITDA Conversion — extreme values:**
+
+OCF/EBITDA conversion values above 3.0x or below −1.0x almost always indicate a one-time working capital event (a large receivables collection, a prepayment, or a restructuring charge) rather than a genuine earnings quality signal. These extreme values distort the peer distribution significantly.
+
+```
+For benchmark computation only:
+    Winsorise OCF/EBITDA conversion to the range [−1.0, 3.0]
+    before computing percentiles
+    Flag: "OCF/EBITDA conversion winsorised at [−1.0, 3.0] 
+           for benchmark computation — extreme values excluded"
+
+For individual company display:
+    Show the actual value without winsorisation
+    But note when the value falls outside the benchmark range
+```
+
+---
+
+### Quartile Classification
+
+After `get_benchmark()` returns `{p25, p50, p75}` for the company's cell, the quartile classification is computed as follows.
+
+**For higher-is-better metrics:**
+
+```
+value > p75              →  "Top quartile"       display: ↑ green
+p50 < value ≤ p75        →  "Upper middle"       display: ↗ light green  
+p25 < value ≤ p50        →  "Lower middle"       display: ↘ light red
+value ≤ p25              →  "Bottom quartile"    display: ↓ red
+```
+
+**For lower-is-better metrics (leverage, debt_to_equity):**
+
+```
+value < p25              →  "Top quartile"       display: ↑ green
+p25 ≤ value < p50        →  "Upper middle"       display: ↗ light green
+p50 ≤ value < p75        →  "Lower middle"       display: ↘ light red
+value ≥ p75              →  "Bottom quartile"    display: ↓ red
+```
+
+**When no benchmark is available:**
+
+```
+benchmark is None        →  "No peer data"       display: — grey
+```
+
+This occurs when the company's sector has fewer than 3 companies with data for that metric, even after the full fallback cascade.
+
+---
+
+### Composite Peer Score
+
+In addition to per-metric quartile classification, compute a **composite peer score** that summarises the company's overall position relative to peers across all benchmarked metrics.
+
+**Computation:**
+
+```
+For each of the 16 benchmarked metrics:
+    Assign a raw score:
+        Top quartile    →  3
+        Upper middle    →  2
+        Lower middle    →  1
+        Bottom quartile →  0
+        No peer data    →  excluded from computation
+
+Apply metric weights (see table below):
+    weighted_score_i = raw_score_i × weight_i
+
+Composite peer score = Σ(weighted_score_i) / Σ(weight_i for included metrics)
+Scale to 0–100: composite_score = composite_peer_score × (100/3)
+```
+
+**Metric weights for composite peer score:**
+
+Weights reflect analytical importance established by the Cohen's d statistical analysis and the confirmation rule calibration from the backtest.
+
+| Metric | Weight | Basis |
+|---|---|---|
+| `leverage` | 3 | Highest Cohen's d (+1.76), in confirmation rule |
+| `interest_coverage` | 3 | Second highest Cohen's d (+1.68), in confirmation rule |
+| `free_cash_flow` | 2 | Medium-large Cohen's d (+0.80), in confirmation rule |
+| `fcf_margin` | 2 | FCF signal, correlated with free_cash_flow |
+| `moody_adjusted_fcf` | 2 | Moody's methodology — primary FCF signal |
+| `rcf_net_debt` | 1 | Excluded from confirmation rule (low sensitivity) |
+| `ocf_ebitda_conversion` | 1 | Supplementary earnings quality signal |
+| `current_ratio` | 1 | Excluded from confirmation rule (statistically inert) |
+| `quick_ratio` | 2 | In confirmation rule, sector-adjusted |
+| `debt_to_equity` | 1 | Excluded from confirmation rule (capital structure artifact) |
+| `ebitda_margin` | 2 | In confirmation rule |
+| `revenue_yoy_growth` | 2 | In confirmation rule |
+| `asset_coverage` | 2 | In confirmation rule |
+| `tangible_asset_coverage` | 1 | Supplementary to asset_coverage |
+| `liquidation_asset_coverage` | 2 | Formula 2 — distress-scenario recovery |
+| `maturity_coverage_near_term` | 2 | Structural liquidity signal |
+
+**Composite score interpretation:**
+
+| Score | Interpretation | Display |
+|---|---|---|
+| 75–100 | Strong relative to peers | ✅ Above peer group |
+| 50–74 | In line with peers | 〜 Peer group average |
+| 25–49 | Weak relative to peers | ⚠️ Below peer group |
+| 0–24 | Significantly below peers | 🔴 Materially below peer group |
+
+> **Note:** Metric weights are derived from a backtest of n=75 companies (30 distressed, 31 healthy controls, 12 stressed survivors). Individual metric Cohen's d estimates have wide confidence intervals at this sample size — only leverage and interest_coverage have CI lower bounds above the medium effect threshold. The composite score weights are therefore directional guidance, not statistically precise multipliers. Do not interpret composite score differences of less than 10 points as meaningful. Phase 5 will recalibrate weights with a target database of n≥200 distressed cases.
+
+**Important caveat — composite score supplements, does not replace, alert levels:**
+
+A company can score well on the composite peer score while still having Critical alert levels if its absolute metric values cross the volatility-adjusted thresholds in `thresholds.py`. The composite score answers "how does this company compare to peers?" — the alert level answers "does this company cross the absolute stress threshold?" Both are displayed. Neither overrides the other.
+
+---
+
+### Known Limitations and Model Boundary Conditions
+
+---
+
+**Limitation 1 — Equal-Weighted Sectors Within Composite Score**
+
+**Problem:**
+The composite peer score weights metrics by analytical importance but does not adjust weights by sector. For an Energy/E&P company, `leverage` and `interest_coverage` are overwhelmingly the most important metrics — FCF and revenue trend are secondary because commodity cycles make them highly volatile. For a Healthcare/Pharma company, `ebitda_margin` and `fcf_margin` are more important than `maturity_coverage` because pharma companies typically have long-dated debt and ample liquidity. Fixed weights across all sectors apply Energy-appropriate weights to Healthcare companies and vice versa.
+
+**Materiality:**
+Moderate. The composite score will directionally rank companies correctly within a sector but may over-weight or under-weight specific metrics relative to what a sector specialist analyst would prioritise.
+
+**Interim mitigation:**
+Composite score is displayed with a note: "weights reflect cross-sector statistical analysis (Cohen's d); sector-specialist analysts should prioritise sector-relevant metrics directly." Per-metric quartile classifications are always shown alongside the composite score so analysts can weight metrics themselves.
+
+**Phase 5 fix:**
+Implement sector-specific weight tables. For each sector, define a weight vector calibrated to that sector's credit driver literature. Reference: Moody's industry-specific rating methodologies (published publicly at moodys.com) define the weight each financial ratio receives in the rating scorecard for each industry — use these as the calibration source for sector-specific weights.
+
+---
+
+**Limitation 2 — Quartile Boundaries Are Not Credit-Calibrated**
+
+**Problem:**
+The quartile boundaries (p25/p50/p75) are statistical properties of the peer distribution — they describe where a company falls relative to its peers, not whether its absolute metric value is safe or stressed. A company in the "Top quartile" for leverage in the Energy/E&P sector might have leverage of 4x — which is below the peer median for that sector but still in the Significant financial risk band by S&P's absolute standards. The quartile classification can create false comfort: "top quartile" does not mean "not stressed."
+
+**Materiality:**
+High — this is the most important limitation of the framework to communicate to users. A distressed-sector peer comparison will always show relative rankings that look better than the absolute credit picture.
+
+**Interim mitigation:**
+Always display the absolute alert level (🔴 Critical, 🟠 Stress, etc.) alongside the peer quartile classification. Never display peer quartile without the absolute alert level. The display rule is: alert level first, quartile second. In the Streamlit UI, the quartile indicator is shown as a small secondary tag, not a primary signal.
+
+**Phase 5 fix:**
+Implement a combined score that integrates both absolute threshold position and peer quartile position. For example: a company at Critical alert level that is also in the Bottom quartile vs peers receives a combined score of "Acute" — both absolute and relative signals agree. A company at Critical alert level that is in the Top quartile vs peers receives "Sector-wide stress" — the absolute threshold is breached but the company is performing better than distressed peers. This combined classification is more actionable than either signal alone.
+
+---
+
+### Cross-References
+
+- Metric polarity used by `get_benchmark()` in `benchmarks.py`: this section is the authoritative source
+- Metric weights for composite score derived from: `analyze_backtest.py` Cohen's d output and dashboard Section 3 calibration tables
+- Absolute alert thresholds that composite score does not replace: `LEVERAGE.md`, `INTEREST_COVERAGE.md`, and `thresholds.py`
+- Debt-to-equity exclusion from confirmation rule (basis for weight = 1): dashboard Section 3, Table B
+- Current ratio exclusion from confirmation rule (basis for weight = 1): dashboard Section 3, Table B
+- `sector_benchmarks` table (p25/p50/p75 source): `SEGMENT_BENCHMARK_SPEC.md` → Section 3
