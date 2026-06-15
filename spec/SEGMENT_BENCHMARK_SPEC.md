@@ -242,3 +242,207 @@ Where k is calibrated empirically to minimise classification discontinuities acr
 - Benchmark table construction using `size_category` as a segmentation dimension: see `SEGMENT_BENCHMARK_SPEC.md` → Section 3 (Benchmark Table Construction)
 - Financial institution suppression that excludes size-tier benchmarks for SIC 6000–6499: see `SECTION_6.md` → Section 6.5
 - `issuers` table schema: see `SECTION_6.md` → Section 6.3 (Table 1: issuers)
+
+Let me check what sectors `thresholds.py` currently covers before writing Section 2.Now I have the full picture. Here is my answer to your question first, then Section 2.
+
+---
+
+
+## Section 2 — Sector Classification
+
+---
+
+### What it is
+
+Sector classification assigns each issuer to one of nine sector groups based on SIC code. The sector group drives three analytical functions: volatility category assignment for leverage and coverage thresholds (already implemented in `thresholds.py`), D/E threshold group selection (already implemented in `DEBT_TO_EQUITY.md`), and benchmark peer group assignment for the sector median comparison tables defined in Section 3 of this spec.
+
+Sector classification operates at two levels of precision:
+
+**Level 1 — Single sector classification:** A company is assigned to exactly one sector group based on its primary SIC code. This is the default and covers approximately 85% of the company universe.
+
+**Level 2 — Multi-segment blended classification:** A company with two or more reportable segments under ASC 280, where no single segment exceeds 80% of total revenue, receives a revenue-weighted blend of two or more sector benchmarks. This requires Group 8 segment footnote extraction (LLM) and is deferred to Phase 5.
+
+---
+
+### The Nine Sector Groups
+
+The existing eight groups in `thresholds.py` are extended to nine. Technology/Services is split into two distinct groups because their credit profiles are structurally incomparable:
+
+| Sector Group | SIC Range | Key industries | Volatility | D/E Group |
+|---|---|---|---|---|
+| **Retail / Wholesale** | 5000–5999 | Grocery, pharmacy, department stores, specialty retail, wholesale distributors | Medial | Standard |
+| **Energy / Mining** | 1040–1499, 1311–1389, 2910–2911 | E&P, oil majors, natural gas, coal, metals mining, gold | Medial | Standard |
+| **Manufacturing / Industrials** | 2000–3999 (excl. energy SICs) | Aerospace, auto parts, chemicals, consumer products, food & beverage, packaging | Standard / Medial | Standard |
+| **Media / Entertainment** | 4800–4899, 7810–7999 | Broadcasting, cable, publishing, film, gaming, music | Medial | Standard |
+| **Healthcare / Pharma** | 2830–2836, 5047, 8000–8099 | Pharmaceuticals, biotech, medical devices, hospitals, health services | Standard | Asset-light |
+| **Technology / Services** | 7370–7379, 3570–3579, 3670–3679 | Software, semiconductors, hardware, IT services, cloud infrastructure | Standard | Asset-light |
+| **Business / Consumer Services** | 7000–7369, 7380–7809, 8100–8999 | Restaurants, hotels, logistics, professional services, education | Standard | Standard |
+| **Financial Institutions** | 6000–6499 | Banks, insurance, broker-dealers, diversified financials | Not applicable | Not applicable |
+| **Telecom / Utilities** | 4810–4813, 4900–4999 | Wireline, wireless, cable (telco), electric, gas, water utilities | Medial / Low | Capital-intensive |
+
+**Note — Real Estate:** SIC 6500–6799 (REITs, real estate services) is treated as a sub-category of Financial Institutions for suppression purposes but uses its own D/E threshold table (Real estate / REITs) as defined in `DEBT_TO_EQUITY.md`. It does not participate in cross-sector benchmark comparisons.
+
+---
+
+### SIC Mapping — Detailed Rules
+
+**Rule 1 — Primary SIC governs:**
+Use the SIC code from the EDGAR submissions API (`sic` field). This is the company's self-reported primary business classification and is the only automated input.
+
+**Rule 2 — Technology / Services split:**
+SIC 7000–8999 in the current `thresholds.py` maps all services and technology together. This spec splits them:
+
+```
+SIC 7370–7379 (Computer programming, data processing) → Technology/Services
+SIC 3570–3579 (Computer and office equipment)         → Technology/Services
+SIC 3670–3679 (Electronic components)                 → Technology/Services
+SIC 7000–7369 (Hotels, personal services, amusement)  → Business/Consumer Services
+SIC 7380–7809 (Misc business services)                → Business/Consumer Services
+SIC 8100–8999 (Legal, accounting, healthcare services) → Business/Consumer Services
+   EXCEPT SIC 8000–8099 → Healthcare/Pharma
+```
+
+**Rule 3 — Energy carve-out from Manufacturing:**
+Several energy SICs sit within the 2000–3999 Manufacturing block. These are carved out:
+
+```
+SIC 1311 (Crude petroleum & natural gas)    → Energy/Mining
+SIC 1381–1389 (Oil & gas field services)    → Energy/Mining
+SIC 2910–2911 (Petroleum refining)          → Energy/Mining
+SIC 1040–1094 (Metal mining)                → Energy/Mining
+SIC 1200–1299 (Coal mining)                 → Energy/Mining
+All other 2000–3999                         → Manufacturing/Industrials
+```
+
+**Rule 4 — Holding company override:**
+SIC 6719 (Offices of holding companies) cannot be automatically classified. Apply manual override at onboarding based on the company's primary operating subsidiary:
+
+```
+If SIC = 6719:
+   Set sector_group = "Unknown — manual classification required"
+   Flag: "holding company SIC — sector classification requires
+          manual review of primary operating subsidiaries"
+   Do not apply any benchmark comparisons until overridden
+```
+
+**Rule 5 — Conglomerate flag:**
+If a company's 10-K discloses 3 or more reportable segments under ASC 280 with no single segment exceeding 50% of revenue, flag it as a conglomerate regardless of SIC:
+
+```
+conglomerate_flag = True
+sector_group = [primary SIC sector]  (kept for threshold purposes)
+benchmark_note = "conglomerate — single-sector benchmark is 
+                  approximate; multi-segment blending required 
+                  for accurate peer comparison (Phase 5)"
+```
+
+---
+
+### Multi-Segment Blended Classification (Phase 5)
+
+When a company has two or more reportable segments under ASC 280 with no single segment exceeding 80% of total revenue, a single sector assignment misrepresents its credit profile. A company that is 60% retail and 40% technology has fundamentally different benchmark peers than either a pure retailer or a pure technology company.
+
+**Trigger condition:**
+```
+IF segment_count >= 2
+AND max(segment_revenue_fraction) < 0.80
+THEN apply multi-segment blending
+```
+
+**Blending formula:**
+```
+For each metric M:
+blended_benchmark(M) = Σ (segment_i_revenue_fraction × 
+                          sector_benchmark_i(M))
+
+Where:
+  segment_i_revenue_fraction = segment_i_revenue / total_revenue
+  sector_benchmark_i = median value of metric M for sector i
+                       in the same size tier
+
+Example (60% Retail / 40% Technology company):
+  blended_leverage_median = 0.60 × retail_median_leverage
+                           + 0.40 × tech_median_leverage
+```
+
+**Display:**
+```
+Sector: Retail/Wholesale (60%) + Technology/Services (40%)
+Benchmarks: blended — see component breakdown
+```
+
+**Data requirement:** Segment revenue by reportable segment from the ASC 280 Segment Footnote. Requires Group 8 LLM extraction (deferred to Phase 5). Until Group 8 is implemented, use Level 1 single-sector classification with the conglomerate flag.
+
+Reference: Berger, P.G. and Ofek, E. (1995). "Diversification's Effect on Firm Value." *Journal of Financial Economics*, 37(1), 39–65.
+
+---
+
+### Structured or Unstructured
+
+| Input | Classification | Phase |
+|---|---|---|
+| Primary SIC code | **Fully Structured** — from EDGAR submissions API | Phase 2 (already implemented) |
+| Segment revenue by segment | **Fully Unstructured** — ASC 280 footnote, LLM required | Phase 5 (Group 8) |
+| Holding company primary business | **Unstructured** — manual override | Phase 2 (manual) |
+
+---
+
+### Known Limitations and Model Boundary Conditions
+
+---
+
+**Limitation 1 — SIC Code Reflects Legal Registration, Not Economic Reality**
+
+**Problem:**
+SIC codes are assigned by the SEC based on the company's primary business at registration and are rarely updated. A company that pivoted from hardware manufacturing (SIC 3570) to cloud software services retains its hardware SIC code indefinitely unless it files an amendment. This produces **systematic sector misclassification for companies that have undergone business model transformation** — a growing problem in the technology and healthcare sectors where companies frequently pivot.
+
+**Materiality:**
+Moderate. Affects approximately 5–10% of the corporate universe, concentrated in technology and healthcare. In the current 75-company database, Motorola Solutions (SIC 3663, radio communications equipment) is classified as Manufacturing/Industrials but operates primarily as a software and services company — its credit profile is more comparable to Technology/Services peers.
+
+**Interim mitigation:**
+Manual override field (`issuers.notes`) allows an analyst to document and correct SIC misclassifications at onboarding. The override is noted in all benchmark outputs.
+
+**Phase 5 fix:**
+Implement automatic SIC validation against the company's reported segment descriptions from the ASC 280 footnote. If the primary segment description contains keywords inconsistent with the assigned SIC sector (e.g., a company with SIC 3570 whose primary segment is described as "cloud software subscriptions"), flag for manual review. Reference: NAICS (North American Industry Classification System) provides more granular and frequently updated industry codes — consider migrating to NAICS as an alternative to SIC for new onboardings.
+
+---
+
+**Limitation 2 — Single-Sector Classification Overstates Benchmark Precision for Diversified Companies**
+
+**Problem:**
+Approximately 20–30% of large-cap companies in the S&P 500 derive material revenue (10–40%) from a secondary sector that is structurally different from their primary sector. For these companies, the single-sector benchmark comparison produces a peer group that does not accurately represent their actual risk profile. A company classified as Manufacturing/Industrials that derives 35% of revenue from financial services (e.g., GE Capital, Caterpillar Financial Products) has leverage characteristics that are incomparable to pure manufacturing peers.
+
+**Materiality:**
+High for conglomerates and diversified industrials. In the current database, General Electric (pre-2018) and Caterpillar are the most significant cases. The conglomerate flag (Rule 5 above) identifies these companies but does not correct the benchmark comparison.
+
+**Interim mitigation:**
+Conglomerate flag displayed prominently in the UI. Benchmark comparisons for flagged companies labeled "approximate — single-sector." Analyst discretion advised.
+
+**Phase 5 fix:**
+Implement multi-segment blended classification as described in the Multi-Segment Blended Classification section above. This requires Group 8 LLM extraction of segment revenue data.
+
+---
+
+**Limitation 3 — Nine Sector Groups Are Insufficient for Within-Sector Variation**
+
+**Problem:**
+The Healthcare/Pharma sector group contains both pre-revenue biotechs (negative EBITDA, cash-burning, equity-funded) and mature pharmaceutical companies (25–35% EBITDA margins, investment-grade rated, dividend-paying). These two sub-types have completely different credit profiles and benchmark comparisons between them are misleading. The same problem exists within Energy/Mining (E&P companies vs integrated majors vs oilfield services) and within Technology/Services (semiconductor capex-intensive companies vs asset-light software companies).
+
+**Materiality:**
+High for Healthcare/Pharma and Energy/Mining. The current 75-company database includes both Lilis Energy (small E&P, bankrupt) and Chesapeake/Expand Energy (large E&P, post-emergence) in the same Energy sector group — their benchmark medians are heavily influenced by which sub-type dominates the cell.
+
+**Interim mitigation:**
+Size tier segmentation (Section 1) partially addresses this — a pre-revenue biotech is typically Small-tier while a mature pharma is Large-tier, so they fall into different benchmark cells. This is an imperfect but functional approximation.
+
+**Phase 5 fix:**
+Implement sub-sector classification within the nine groups using NAICS 6-digit codes or manually defined sub-sector tags. Minimum viable sub-sectors: Healthcare (Pharma/Biotech vs Healthcare Services vs Medical Devices), Energy (E&P vs Integrated vs Midstream vs Oilfield Services), Technology (Software vs Semiconductor vs Hardware). Each sub-sector maintains its own benchmark table when sample size permits (minimum 3 companies per cell).
+
+---
+
+### Cross-References
+
+- Volatility category assignment using sector group: `LEVERAGE.md` → Section "Stress Threshold" → Step 1
+- D/E threshold group using sector group: `DEBT_TO_EQUITY.md` → Section "Stress Threshold" → Step 1
+- Benchmark table construction using sector group as segmentation dimension: `SEGMENT_BENCHMARK_SPEC.md` → Section 3
+- Financial institution suppression rules: `SECTION_6.md` → Section 6.5
+- Group 8 segment footnote LLM extraction (required for multi-segment blending): deferred to Phase 5
