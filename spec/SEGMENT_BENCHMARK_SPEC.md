@@ -237,9 +237,6 @@ Where k is calibrated empirically to minimise classification discontinuities acr
 
 ---
 
-This format — Problem / Materiality / Interim Mitigation / Phase 5 Fix — is the standard structure used in rating agency model documentation (Moody's Analytics model validation reports follow this exact four-part structure for each limitation). It is professionally credible and immediately communicates to your mentor that you understand not just what the system does, but where its analytical boundaries are and how you would address them at scale.
----
-
 ## Cross-references
 
 - Benchmark table construction using `size_category` as a segmentation dimension: see `SEGMENT_BENCHMARK_SPEC.md` → Section 3 (Benchmark Table Construction)
