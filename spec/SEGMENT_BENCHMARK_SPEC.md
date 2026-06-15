@@ -439,6 +439,23 @@ Implement sub-sector classification within the nine groups using NAICS 6-digit c
 
 ---
 
+***Sub-Sector Classification — Hybrid Manual/LLM Approach***
+**Sub-sector classification uses a two-tier approach:**
+
+*Tier 1 — Static assignment for known companies:*
+
+> Companies already in the database are manually assigned a sub-sector tag based on analyst knowledge. This is hardcoded in the database at onboarding and requires no LLM quota. Applicable to the three sectors with material within-sector variation: Healthcare/Pharma, Energy/Mining, and Technology/Services.
+
+*Tier 2 — LLM on-demand for new companies:*
+
+> When a new company is onboarded via the Streamlit search interface and the analyst triggers LLM extraction, Group 8 (segment footnote extraction) automatically assigns the sub-sector tag based on segment descriptions and revenue weights from the ASC 280 footnote. The assignment is stored permanently and does not require re-extraction on subsequent visits.
+
+- *Fallback*  If neither manual assignment nor LLM extraction has been run, sub_sector = null and the system uses sector-level benchmarks only (Level 1 classification). A flag is displayed: "sub-sector not classified — sector-level benchmarks applied; press LLM button for refined classification."
+
+- This hybrid approach ensures the 75-company database has immediate sub-sector benchmark coverage without LLM cost, while ensuring all future companies receive accurate sub-sector classification automatically.
+
+---
+
 ### Cross-References
 
 - Volatility category assignment using sector group: `LEVERAGE.md` → Section "Stress Threshold" → Step 1
@@ -446,3 +463,109 @@ Implement sub-sector classification within the nine groups using NAICS 6-digit c
 - Benchmark table construction using sector group as segmentation dimension: `SEGMENT_BENCHMARK_SPEC.md` → Section 3
 - Financial institution suppression rules: `SECTION_6.md` → Section 6.5
 - Group 8 segment footnote LLM extraction (required for multi-segment blending): deferred to Phase 5
+
+
+
+
+**Here is the full sub-sector spec text to add to Section 2:**
+
+---
+
+## Sub-Sector Classification Definitions
+
+Sub-sector classification is defined for three sector groups where within-sector variation is large enough to make single-sector benchmarks misleading. All other sector groups use single-sector Level 1 classification only.
+
+---
+
+### Healthcare / Pharma Sub-Sectors
+
+| Sub-Sector Tag | Definition | Key Characteristics | Examples in Database |
+|---|---|---|---|
+| `branded_pharma` | Companies with primary revenue from patent-protected branded drugs. Revenue is concentrated in a small number of blockbuster drugs. High EBITDA margins (25–40%). Cash-generative but exposed to patent cliff risk. | High leverage tolerance (acquisition-driven), strong FCF, low capex, high R&D | Amgen, Eli Lilly, Pfizer, Johnson & Johnson |
+| `generic_pharma` | Companies with primary revenue from off-patent generic drug manufacturing and distribution. High competition, thin margins (5–15% EBITDA), volume-driven business model. Highly sensitive to pricing pressure and FDA approval timing. | Lower leverage tolerance, thin margins, working capital intensive, regulatory risk | Mallinckrodt, Lannett, Akorn |
+| `healthcare_services` | Companies providing healthcare delivery, pharmacy retail, or managed care services. Asset-intensive relative to pure pharma. Revenue is recurring but margin-thin (1–5% for pharmacy retail). | Retail-like working capital structure, low EBITDA margins, high volume | Rite Aid |
+| `medical_devices` | Companies manufacturing medical equipment, implants, diagnostics, or instruments. Capital-intensive manufacturing, recurring consumables revenue, strong pricing power with hospitals. EBITDA margins 20–30%. | Moderate leverage tolerance, recurring consumables, acquisition-driven growth | Becton Dickinson |
+
+**Classification rule:**
+```
+If primary revenue source = branded patent-protected drugs    → branded_pharma
+If primary revenue source = generic/off-patent drugs          → generic_pharma
+If primary revenue source = pharmacy retail / health services → healthcare_services
+If primary revenue source = medical equipment / devices       → medical_devices
+If ambiguous (diversified across sub-types):
+   Apply dominant sub-sector if one segment > 60% of revenue
+   Apply conglomerate flag if no segment > 60%
+```
+
+**Edge cases:**
+- **AbbVie:** branded_pharma (Humira + Skyrizi dominant, > 60% immunology branded drugs)
+- **Rite Aid:** healthcare_services (pharmacy retail — classified here despite SIC 5912 Retail Drug Stores; the credit profile matches healthcare services, not general retail)
+- **Bausch Health:** generic_pharma (Bausch + Lomb devices + generic pharma mix → dominant generic_pharma given debt structure and margin profile)
+
+---
+
+### Energy / Mining Sub-Sectors
+
+| Sub-Sector Tag | Definition | Key Characteristics | Examples in Database |
+|---|---|---|---|
+| `ep_independent` | Pure exploration and production companies. Revenue entirely from commodity prices (oil, natural gas, NGL). No downstream processing. Highly cyclical — EBITDA swings 50–80% with commodity prices. | High leverage in downturns, capex-intensive, no pricing power, commodity price pass-through | Chesapeake Energy, Whiting Petroleum, Denbury Resources, Lilis Energy, Sanchez Energy, Extraction Oil |
+| `integrated_major` | Vertically integrated oil and gas companies with upstream (E&P), midstream (pipelines), and downstream (refining, chemicals) operations. Downstream partially hedges upstream commodity exposure. | Lower volatility than pure E&P, investment-grade rated, dividend-paying, very large asset base | Exxon Mobil, Occidental Petroleum |
+| `midstream_services` | Pipeline, storage, processing, and transportation companies. Revenue is largely fee-based with long-term contracts. Commodity price exposure is minimal. Regulated or quasi-regulated cash flows. | Low volatility, high leverage tolerance (similar to utilities), stable FCF, MLP structures common | None currently in database |
+| `metals_mining` | Companies extracting metals, minerals, or coal. Revenue driven by commodity prices but with different cycles than oil and gas. Higher capex intensity, longer project timelines, environmental liability exposure. | Cyclical like E&P but different commodity cycle, large asset base, environmental tail risk | None currently in database |
+
+**Classification rule:**
+```
+If revenue > 80% from oil/gas production with no refining    → ep_independent
+If revenue includes refining OR chemicals > 15%              → integrated_major
+If revenue > 70% from transportation/processing fees         → midstream_services
+If primary revenue from metals, minerals, or coal            → metals_mining
+```
+
+**Edge cases:**
+- **Chesapeake Energy (pre-bankruptcy) vs Expand Energy (post-bankruptcy):** Both classified `ep_independent`. The post-bankruptcy entity is larger and better capitalized but the business model is identical — benchmark comparison should use the same sub-sector peer group.
+- **Occidental Petroleum:** `integrated_major` — has E&P, OxyChem (chemicals), and midstream segments. No single segment > 80% but chemical segment provides meaningful revenue stabilization vs pure E&P peers.
+
+---
+
+### Technology / Services Sub-Sectors
+
+| Sub-Sector Tag | Definition | Key Characteristics | Examples in Database |
+|---|---|---|---|
+| `software_saas` | Companies with primary revenue from software licenses, subscriptions, or IT services. Asset-light — minimal physical capital. High EBITDA margins (20–35%) at scale. Recurring revenue provides cash flow predictability. | Low capex, high margins, negative working capital (subscriptions paid upfront), acquisition-driven growth common | Accenture, ADP, Paychex, Motorola Solutions |
+| `semiconductor` | Companies designing or manufacturing integrated circuits, processors, or electronic components. Capital-intensive manufacturing (fabs) or asset-light design (fabless). Highly cyclical — revenue swings 20–40% in down-cycles. | High capex (fab companies), cyclical revenue, long product development cycles, inventory risk | Texas Instruments |
+| `hardware_devices` | Companies manufacturing physical technology products — computers, networking equipment, consumer electronics. Lower margins than software. Subject to supply chain risk and product obsolescence. | Moderate capex, inventory risk, shorter product cycles, commoditisation pressure | None dominant in database |
+| `it_services` | Companies providing outsourced IT services, consulting, systems integration, or business process outsourcing. Revenue is contract-based and recurring. Lower margins than software (8–15% EBITDA) but stable. | Low capex, contract-based revenue, labour cost dominant, offshore delivery models | Conduent, Accenture (partially) |
+
+**Classification rule:**
+```
+If primary revenue from software licenses or SaaS subscriptions → software_saas
+If primary revenue from chip design or manufacturing            → semiconductor
+If primary revenue from physical technology hardware            → hardware_devices
+If primary revenue from outsourced IT or BPO services          → it_services
+If ambiguous (e.g. Accenture = consulting + tech services):
+   Use dominant revenue segment if > 60%
+   Otherwise: software_saas if margins > 20%, it_services if margins < 15%
+```
+
+**Edge cases:**
+- **Accenture:** `it_services` primarily but with significant technology consulting. EBITDA margins (~15%) confirm it_services classification despite technology positioning.
+- **Conduent:** `it_services` — business process outsourcing, document management. Distressed case — high leverage on thin IT services margins.
+- **Motorola Solutions:** `software_saas` — pivoted from hardware radios to software and services for public safety. Revenue now majority software/services despite SIC 3663 (radio equipment). Manual override of SIC classification.
+
+---
+
+### Sectors Using Single-Sector Classification Only
+
+The following sectors do not have defined sub-sectors in this spec. All companies in these sectors are benchmarked at the sector level only:
+
+| Sector | Reason no sub-sectors defined |
+|---|---|
+| Retail / Wholesale | Within-sector variation (grocery vs specialty vs department) is captured adequately by the size dimension. A small specialty retailer and a large grocer have different benchmarks through the size tier alone. |
+| Manufacturing / Industrials | Too broad to define sub-sectors with current database size. Minimum 3 companies per sub-sector cell is not achievable for most industrial sub-categories at n=75. |
+| Media / Entertainment | Current database has 4 media companies — insufficient sample for sub-sector cells. |
+| Business / Consumer Services | High heterogeneity but small sample. Single-sector classification with size dimension is adequate approximation. |
+| Financial Institutions | Benchmark comparisons suppressed entirely. Sub-sectors irrelevant for cross-sector comparison. |
+| Telecom / Utilities | Telecom and Utilities are already implicitly separated by SIC within this group (4810–4813 vs 4900–4999). The size dimension handles the remaining variation adequately. |
+
+**Phase 5 note:** As the database expands beyond 200 companies, sub-sector definitions should be added for Manufacturing/Industrials (aerospace vs auto vs chemicals vs consumer products) and Retail (grocery vs pharmacy vs specialty vs department). The minimum viable sample for a sub-sector benchmark cell is 5 companies; 10+ is preferred.
+
