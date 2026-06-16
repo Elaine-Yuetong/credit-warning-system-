@@ -123,6 +123,35 @@ def recently_monitored() -> list[dict]:
 # Metrics
 # --------------------------------------------------------------------------------------
 
+def load_sector_benchmarks(sector_group: str = None,
+                           size_category: str = None) -> list[dict]:
+    """Load benchmark rows from sector_benchmarks table.
+    If sector_group is None, return all sectors. Returns list of dicts with all columns."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    query = "SELECT * FROM sector_benchmarks WHERE 1=1"
+    params = []
+    if sector_group:
+        query += " AND sector_group = ?"
+        params.append(sector_group)
+    if size_category:
+        query += " AND size_category = ?"
+        params.append(size_category)
+    query += " ORDER BY sector_group, size_category, metric_name"
+    rows = [dict(r) for r in conn.execute(query, params)]
+    conn.close()
+    return rows
+
+
+def available_sectors() -> list[str]:
+    """Distinct sector groups that have benchmark data."""
+    conn = sqlite3.connect(DB_PATH)
+    rows = [r[0] for r in conn.execute(
+        "SELECT DISTINCT sector_group FROM sector_benchmarks ORDER BY sector_group")]
+    conn.close()
+    return rows
+
+
 def company_in_db(cik: str) -> bool:
     conn = sqlite3.connect(DB_PATH)
     hit = conn.execute("SELECT 1 FROM metric_values WHERE cik=? LIMIT 1", (cik,)).fetchone()
