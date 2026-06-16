@@ -349,18 +349,40 @@ def _search_browse_edgar(query: str, max_results: int) -> list[dict]:
     return out
 
 
+def _is_likely_subsidiary(name: str) -> bool:
+    """Heuristic: does the entity name look like a financing/subsidiary co-issuer shell rather
+    than the primary operating company?"""
+    signals = ["holdings llc", " llc", "finance corp", "capital corp",
+               "us inc", "co-issuer", "funding corp", "escrow",
+               "co-registrant"]
+    lower = name.lower()
+    return any(s in lower for s in signals)
+
+
+def _enrich_flags(results: list[dict]) -> list[dict]:
+    """Tag each result with in_database (already monitored) and likely_subsidiary."""
+    conn = sqlite3.connect(DB_PATH)
+    db_ciks = {r[0] for r in conn.execute("SELECT cik FROM issuers")}
+    conn.close()
+    for r in results:
+        r["in_database"] = r["cik"] in db_ciks
+        r["likely_subsidiary"] = _is_likely_subsidiary(r["name"])
+    return results
+
+
 def edgar_search(query: str, max_results: int = 25) -> tuple[list[dict], str]:
     """Search EDGAR for 10-K filers by company name. Returns (results, error_msg).
     Tries the full-text search API first; if that host is blocked/unavailable (or returns no
-    hits), falls back to the classic browse-edgar company-name search."""
+    hits), falls back to the classic browse-edgar company-name search. Each result is tagged
+    with in_database / likely_subsidiary for disambiguation badges."""
     try:
         out = _search_efts(query, max_results)
         if out:
-            return out, ""
+            return _enrich_flags(out), ""
     except Exception:
         pass  # efts blocked/unavailable -> fall back
     try:
         out = _search_browse_edgar(query, max_results)
-        return out, ("" if out else "No matching 10-K filers found.")
+        return _enrich_flags(out), ("" if out else "No matching 10-K filers found.")
     except Exception as e:
         return [], f"EDGAR search unavailable ({e}). Use Recently Monitored below."

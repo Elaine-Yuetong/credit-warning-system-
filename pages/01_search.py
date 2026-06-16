@@ -24,12 +24,21 @@ if query:
     else:
         st.caption(f"{len(results)} matches — click **Monitor** to open.")
         for r in results:
-            c1, c2, c3, c4 = st.columns([4, 2, 2, 1])
-            c1.write(f"**{r['name']}**")
-            c2.write(f"CIK {r['cik']}")
-            c3.write(f"SIC {r['sic'] or '—'}")
-            if c4.button("Monitor", key=f"s_{r['cik']}"):
-                _go_to_monitor(r["cik"])
+            col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+            with col1:
+                if r.get("in_database"):
+                    st.markdown(f"**{r['name']}** &nbsp; :green[✅ In database]")
+                elif r.get("likely_subsidiary"):
+                    st.markdown(f"**{r['name']}** &nbsp; :grey[subsidiary entity]")
+                else:
+                    st.markdown(f"**{r['name']}**")
+            with col2:
+                st.caption(f"CIK {r['cik']}")
+            with col3:
+                st.caption(f"SIC {r['sic'] or '—'}")
+            with col4:
+                if st.button("Monitor", key=f"mon_{r['cik']}"):
+                    _go_to_monitor(r["cik"])
 
 # ---- Recently monitored (companies already in the database) ----
 st.divider()
