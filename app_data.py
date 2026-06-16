@@ -98,12 +98,25 @@ def classification_badge(cik: str) -> tuple[str, str]:
 
 
 def recently_monitored() -> list[dict]:
+    # Friendly case-library display names (same overlay as generate_dashboard.build()).
+    friendly = {}
+    try:
+        bt = json.load(open(BACKTEST_JSON, encoding="utf-8"))
+        for grp in ("distressed", "healthy", "stressed_survivors"):
+            for c in bt.get(grp, []):
+                friendly[c["cik"]] = c["name"]
+    except Exception:
+        pass
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     rows = [dict(r) for r in conn.execute(
-        "SELECT cik,name,sector_group,size_category FROM issuers ORDER BY name")]
+        "SELECT cik, name, sector_group, size_category FROM issuers ORDER BY name")]
     conn.close()
-    return rows
+
+    for r in rows:
+        r["name"] = friendly.get(r["cik"], r["name"])
+    return sorted(rows, key=lambda r: r["name"].lower())
 
 
 # --------------------------------------------------------------------------------------
