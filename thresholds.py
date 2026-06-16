@@ -55,6 +55,20 @@ def classify(sic_code: Optional[str]) -> Classification:
 
     if 6000 <= sic <= 6499:
         return Classification("Financial Institutions", "NA", "financial", "standard", "NA")
+
+    # ── Specific-SIC carve-outs (more precise than the broad ranges below). These fix sector
+    # LABELS for benchmark grouping; the volatility/institution/liquidity/de_group fields are kept
+    # identical to the broad block each SIC was previously in, so alert thresholds are unchanged
+    # (telecom/media/services were all "Standard" volatility before — no threshold drift). ──
+    if sic in (4812, 4813, 4899):          # telephone / radiotelephone / communications services
+        return Classification("Telecom / Utilities", "Standard", "corporate", "standard", "capital_intensive")
+    if sic in (4832, 4833, 4841):          # radio / TV broadcasting / cable & pay-TV
+        return Classification("Media / Entertainment", "Standard", "corporate", "standard", "capital_intensive")
+    if sic == 4210:                        # trucking / courier services
+        return Classification("Manufacturing / Industrials", "Standard", "corporate", "standard", "capital_intensive")
+    if sic in (7389, 7510):                # equipment/auto rental, misc business services
+        return Classification("Business / Consumer Services", "Standard", "corporate", "standard", "asset_light")
+
     if 100 <= sic <= 1499:
         return Classification("Agriculture / Mining", "Standard", "corporate", "standard", "standard")
     if 1500 <= sic <= 1799:
