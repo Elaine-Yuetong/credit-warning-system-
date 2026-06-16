@@ -1137,6 +1137,8 @@ Weights reflect analytical importance established by the Cohen's d statistical a
 | `liquidation_asset_coverage` | 2 | Formula 2 — distress-scenario recovery |
 | `maturity_coverage_near_term` | 2 | Structural liquidity signal |
 
+Quick ratio weight = 2 and current ratio weight = 1 because the backtest statistical analysis showed materially different discrimination: quick ratio Cohen's d = +0.49 (medium effect, in the confirmation rule) vs current ratio Cohen's d = −0.05 (statistically inert, p=0.92, excluded from confirmation rule — see dashboard Section 3, Table B). Current ratio is more susceptible to inventory accounting distortions and does not reliably separate distressed from healthy companies in the backtest sample.
+
 **Composite score interpretation:**
 
 | Score | Interpretation | Display |
@@ -1198,3 +1200,6 @@ Implement a combined score that integrates both absolute threshold position and 
 - Debt-to-equity exclusion from confirmation rule (basis for weight = 1): dashboard Section 3, Table B
 - Current ratio exclusion from confirmation rule (basis for weight = 1): dashboard Section 3, Table B
 - `sector_benchmarks` table (p25/p50/p75 source): `SEGMENT_BENCHMARK_SPEC.md` → Section 3
+
+
+
