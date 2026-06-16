@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import json
+import re
 import sqlite3
 import urllib.parse
 import urllib.request
@@ -18,7 +19,7 @@ import urllib.request
 
 DB_PATH = "credit_warning.db"
 BACKTEST_JSON = "backtest_results.json"
-UA = "Credit Warning System (research) elaine.wei@xpef.org"
+UA = "CreditWarningSystem/1.0 (research project; contact: elaine.wei@xpef.org)"
 
 # 19 metrics in display order with human labels (mirrors cli.py / generate_dashboard).
 METRIC_ORDER = [
@@ -289,19 +290,15 @@ def run_llm_extraction(cik: str, form: str = "10-K") -> str:
 # EDGAR full-text company search
 # --------------------------------------------------------------------------------------
 
-def edgar_search(query: str, max_results: int = 25) -> tuple[list[dict], str]:
-    """Full-text search EDGAR for 10-K filers. Returns (results, error_msg).
-    NOTE: the canonical endpoint is /LATEST/search (not /search-index). Some networks block
-    efts.sec.gov; on failure we return an empty list with an error message and the UI falls
-    back to the 'Recently Monitored' list."""
-    url = ("https://efts.sec.gov/LATEST/search?q=%22"
-           + urllib.parse.quote(query) + "%22&forms=10-K")
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.load(resp)
-    except Exception as e:
-        return [], f"EDGAR search unavailable ({e}). Use Recently Monitored below."
+def _search_efts(query: str, max_results: int) -> list[dict]:
+    """Primary: EDGAR full-text search. Raises on transport error (caller falls back)."""
+    url = ("https://efts.sec.gov/LATEST/search?q="
+           + urllib.parse.quote(f'"{query}"')
+           + "&dateRange=custom&startdt=2020-01-01&forms=10-K"
+           + "&hits.hits._source=ciks,display_names,sics")
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        data = json.load(resp)
     out, seen = [], set()
     for hit in data.get("hits", {}).get("hits", []):
         src = hit.get("_source", {})
@@ -311,9 +308,59 @@ def edgar_search(query: str, max_results: int = 25) -> tuple[list[dict], str]:
                 continue
             seen.add(c10)
             name = next((dn.split(" (CIK")[0] for dn in src.get("display_names", [])
-                         if c.lstrip("0") in dn or f"CIK {c}" in dn), src.get("display_names", ["?"])[0])
+                         if c.lstrip("0") in dn or f"CIK {c}" in dn),
+                        (src.get("display_names") or ["?"])[0])
             sics = src.get("sics", [])
             out.append({"name": name, "cik": c10, "sic": sics[0] if sics else ""})
             if len(out) >= max_results:
-                return out, ""
-    return out, ""
+                return out
+    return out
+
+
+def _search_browse_edgar(query: str, max_results: int) -> list[dict]:
+    """Fallback: classic EDGAR company-name search (browse-edgar atom), reachable where the
+    efts full-text host is blocked. The atom reliably exposes only <cik> (its per-company name
+    attribute is a corrupt 'ARRAY(0x..)' in multi-match results), so we parse CIKs from the atom
+    and resolve name + SIC from the data.sec.gov submissions API. Capped to bound search latency."""
+    url = ("https://www.sec.gov/cgi-bin/browse-edgar?company="
+           + urllib.parse.quote(query)
+           + "&CIK=&type=10-K&dateb=&owner=include&count=20&search_text=&action=getcompany&output=atom")
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/xml"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        body = resp.read().decode("utf-8", "replace")
+    ciks, seen = [], set()
+    for c in re.findall(r"<cik>(\d+)</cik>", body):
+        c10 = c.zfill(10)
+        if c10 not in seen:
+            seen.add(c10)
+            ciks.append(c10)
+    from extractor import SecClient, fetch_issuer_metadata
+    client = SecClient()
+    out = []
+    for c10 in ciks[:min(max_results, 12)]:   # cap submissions lookups
+        name, sic = f"CIK {c10}", ""
+        try:
+            m = fetch_issuer_metadata(client, c10)
+            if m:
+                name, sic = (m.name or name), (m.sic_code or "")
+        except Exception:
+            pass
+        out.append({"name": name, "cik": c10, "sic": sic})
+    return out
+
+
+def edgar_search(query: str, max_results: int = 25) -> tuple[list[dict], str]:
+    """Search EDGAR for 10-K filers by company name. Returns (results, error_msg).
+    Tries the full-text search API first; if that host is blocked/unavailable (or returns no
+    hits), falls back to the classic browse-edgar company-name search."""
+    try:
+        out = _search_efts(query, max_results)
+        if out:
+            return out, ""
+    except Exception:
+        pass  # efts blocked/unavailable -> fall back
+    try:
+        out = _search_browse_edgar(query, max_results)
+        return out, ("" if out else "No matching 10-K filers found.")
+    except Exception as e:
+        return [], f"EDGAR search unavailable ({e}). Use Recently Monitored below."
