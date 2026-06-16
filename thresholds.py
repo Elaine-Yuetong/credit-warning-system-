@@ -56,36 +56,49 @@ def classify(sic_code: Optional[str]) -> Classification:
     if 6000 <= sic <= 6499:
         return Classification("Financial Institutions", "NA", "financial", "standard", "NA")
 
-    # ── Specific-SIC carve-outs (more precise than the broad ranges below). These fix sector
-    # LABELS for benchmark grouping; the volatility/institution/liquidity/de_group fields are kept
-    # identical to the broad block each SIC was previously in, so alert thresholds are unchanged
-    # (telecom/media/services were all "Standard" volatility before — no threshold drift). ──
-    if sic in (4812, 4813, 4899):          # telephone / radiotelephone / communications services
-        return Classification("Telecom / Utilities", "Standard", "corporate", "standard", "capital_intensive")
-    if sic in (4832, 4833, 4841):          # radio / TV broadcasting / cable & pay-TV
-        return Classification("Media / Entertainment", "Standard", "corporate", "standard", "capital_intensive")
-    if sic == 4210:                        # trucking / courier services
-        return Classification("Manufacturing / Industrials", "Standard", "corporate", "standard", "capital_intensive")
-    if sic in (7389, 7510):                # equipment/auto rental, misc business services
-        return Classification("Business / Consumer Services", "Standard", "corporate", "standard", "asset_light")
+    # ── Sector carve-outs emitting the spec's 9 group names (SEGMENT_BENCHMARK_SPEC §2).
+    # LABEL-only reclassification: each carve-out keeps the volatility/institution/liquidity/
+    # de_group it had under its original broad block, so alert thresholds — and the backtest —
+    # are unchanged. Carve-outs precede the broad ranges so the specific case wins. ──
 
-    if 100 <= sic <= 1499:
-        return Classification("Agriculture / Mining", "Standard", "corporate", "standard", "standard")
+    # Energy / Mining — petroleum refining carved from the manufacturing block.
+    if 2910 <= sic <= 2911:
+        return Classification("Energy / Mining", "Standard", "corporate", "retail_manufacturing", "standard")
+    # Healthcare / Pharma — pharma/biotech & medical devices (from manufacturing), medical
+    # wholesale (from retail), health services (from services). Source-block fields preserved.
+    if 2830 <= sic <= 2836 or 3841 <= sic <= 3845:
+        return Classification("Healthcare / Pharma", "Standard", "corporate", "retail_manufacturing", "standard")
+    if sic == 5047:
+        return Classification("Healthcare / Pharma", "Medial", "corporate", "retail_manufacturing", "standard")
+    if 8000 <= sic <= 8099:
+        return Classification("Healthcare / Pharma", "Standard", "corporate", "standard", "asset_light")
+    # Media / Entertainment & Telecom / Utilities — broadcasting/cable vs communications, both
+    # carved from the 4000-4899 transport block (all "Standard" volatility, capital-intensive).
+    if 4830 <= sic <= 4841:                # radio / TV broadcasting, cable & pay-TV
+        return Classification("Media / Entertainment", "Standard", "corporate", "standard", "capital_intensive")
+    if 4800 <= sic <= 4899:                # telephone / radiotelephone / other communications
+        return Classification("Telecom / Utilities", "Standard", "corporate", "standard", "capital_intensive")
+
+    # ── Broad ranges ──
+    if 100 <= sic <= 1499:                 # crude oil & gas, metal / coal mining
+        return Classification("Energy / Mining", "Standard", "corporate", "standard", "standard")
     if 1500 <= sic <= 1799:
         return Classification("Construction", "Standard", "corporate", "standard", "standard")
     if 2000 <= sic <= 3999:
         # Manufacturing / Industrials — ambiguous Standard/Medial -> Standard (more conservative).
         return Classification("Manufacturing / Industrials", "Standard", "corporate", "retail_manufacturing", "standard")
-    if 4000 <= sic <= 4899:
-        return Classification("Transportation", "Standard", "corporate", "standard", "capital_intensive")
-    if 4900 <= sic <= 4999:
-        return Classification("Utilities", "Low", "corporate", "utility", "capital_intensive")
+    if 4000 <= sic <= 4799:                # rail / trucking / air / water freight -> industrials
+        return Classification("Manufacturing / Industrials", "Standard", "corporate", "standard", "capital_intensive")
+    if 4900 <= sic <= 4999:                # electric / gas / water utilities
+        return Classification("Telecom / Utilities", "Low", "corporate", "utility", "capital_intensive")
     if 5000 <= sic <= 5999:
         return Classification("Retail / Wholesale", "Medial", "corporate", "retail_manufacturing", "standard")
     if 6500 <= sic <= 6799:
         return Classification("Real Estate", "Low", "corporate", "standard", "real_estate")
-    if 7000 <= sic <= 8999:
+    if 7370 <= sic <= 7379:                # computer programming / data processing / software
         return Classification("Services / Technology", "Standard", "corporate", "standard", "asset_light")
+    if 7000 <= sic <= 8999:                # hotels, business / professional / personal services
+        return Classification("Business / Consumer Services", "Standard", "corporate", "standard", "asset_light")
     # Unknown SIC -> Standard, the most conservative corporate default.
     return Classification("Unclassified", "Standard", "corporate", "standard", "standard")
 
