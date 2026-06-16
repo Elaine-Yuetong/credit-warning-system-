@@ -120,6 +120,9 @@ _spark(col2, "interest_coverage", "Interest Coverage")
 # ── Component 4 — LLM extraction panel ──────────────────────────────────────────────────
 st.divider()
 st.subheader("📋 LLM Extracted Details")
+_filing_url = a.get_filing_url(cik)
+if _filing_url:
+    st.markdown(f"[📄 View original SEC filing]({_filing_url})", unsafe_allow_html=False)
 
 _CMP = {"in_compliance": ("✅", "#166534"), "going_concern_doubt": ("🟠", "#9a3412"),
         "breach": ("🔴", "#991b1b"), "chapter_11": ("🔴", "#991b1b")}
@@ -157,9 +160,15 @@ def render_llm(cik: str):
                      use_container_width=True, hide_index=True)
     if llm["revolver"]:
         r = llm["revolver"]
-        f = lambda v: "—" if v is None else f"${v:,.1f}M"
-        st.markdown(f"**Revolver** — Commitment {f(r['commitment'])} · Drawn {f(r['drawn'])} · "
-                    f"Available {f(r['undrawn'])} · Matures {r['maturity'] or '—'}")
+        money = lambda v: "—" if v is None else f"${v:,.1f}M"
+        # st.text (not st.markdown): bare '$' pairs in markdown render as LaTeX math, which
+        # was italicising/garbling the revolver line.
+        st.markdown("**Revolver**")
+        st.text(f"Commitment {money(r['commitment'])} · Drawn {money(r['drawn'])} · "
+                f"Available {money(r['undrawn'])} · Matures {r['maturity'] or '—'}")
+    if llm.get("footnote_text"):
+        with st.expander("📋 View raw footnote text fed to LLM"):
+            st.text(llm["footnote_text"])
 
 render_llm(cik)
 
