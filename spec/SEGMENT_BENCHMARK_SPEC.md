@@ -750,6 +750,9 @@ CREATE TABLE sector_benchmarks (
 
 This allows the display layer to communicate benchmark precision to the analyst: "benchmark from 12 companies in same sector/size/sub-sector" vs "benchmark from 8 companies in same sector/size (sub-sector insufficient)" vs "benchmark from 23 companies in same sector only."
 
+
+Add distressed_count INTEGER DEFAULT 0 to the sector_benchmarks table, computed during recompute_all_benchmarks() by joining against a benchmark_exclude or classification flag on the issuers table.
+
 ---
 
 ### Update Trigger
@@ -1202,4 +1205,588 @@ Implement a combined score that integrates both absolute threshold position and 
 - `sector_benchmarks` table (p25/p50/p75 source): `SEGMENT_BENCHMARK_SPEC.md` → Section 3
 
 
+
+## Section 5 — Multi-Segment Blending
+
+---
+
+### What it is
+
+Multi-segment blending is the mechanism by which a company with two or more materially distinct business segments receives a benchmark comparison that reflects its actual business mix rather than a single SIC-code classification. Instead of comparing a company that is 60% technology and 40% retail against pure-play technology peers, the system constructs a blended benchmark — 60% of the technology sector median plus 40% of the retail sector median — and compares the company against that composite peer.
+
+This section defines when blending triggers, how the blended benchmark is computed, how it is displayed, and what happens at the boundaries where blending produces ambiguous or unreliable results.
+
+---
+
+### Dependency — Group 8 LLM Extraction
+
+Multi-segment blending cannot be implemented without Group 8 (segment footnote LLM extraction). The segment revenue weights required for the blending formula are disclosed in the ASC 280 Segment Footnote of each 10-K and 10-Q. They are not available in XBRL in a usable form — companies tag segment data inconsistently and many do not tag it at all. The LLM is the only reliable extraction path.
+
+Until Group 8 is implemented:
+
+```
+If Group 8 extraction has not been run for a company:
+    Use Level 1 single-sector classification (Section 2)
+    Display flag: "single-sector benchmark — press LLM button
+                   to extract segment data for blended benchmark"
+    Do NOT attempt to infer segment weights from SIC code alone
+```
+
+Group 8 is triggered by the LLM button in the Streamlit app. It runs alongside the existing Groups 1–7a extractions when the analyst explicitly requests LLM extraction for a company. Segment data is stored permanently and does not require re-extraction on subsequent visits unless the analyst manually triggers a refresh.
+
+---
+
+### Trigger Conditions
+
+Blending applies when all three of the following conditions are met:
+
+**Condition 1 — Multiple reportable segments:**
+The company discloses two or more reportable operating segments under ASC 280 in its most recent annual 10-K. Interim 10-Q segment disclosures may be used if the 10-K data is stale (more than 15 months old).
+
+**Condition 2 — No dominant segment:**
+No single segment accounts for ≥ 80% of total disclosed segment revenue. A company with one segment at 85% is treated as a single-sector company — the secondary segment is immaterial to the credit profile.
+
+```
+dominant_fraction = max(segment_revenue_i / total_segment_revenue)
+
+If dominant_fraction >= 0.80:
+    Use single-sector classification (dominant segment's sector)
+    Flag: "dominant segment ({name}, {fraction:.0%}) — 
+           single-sector benchmark applied"
+
+If dominant_fraction < 0.80 AND segment_count >= 2:
+    Apply multi-segment blending
+```
+
+**Condition 3 — Segments map to at least two distinct sector groups:**
+If all segments map to the same sector group (e.g. a pharma company with Immunology and Oncology segments — both Healthcare/Pharma), blending does not apply because both segments share the same peer benchmark. The sub-sector classification from Section 2 handles within-sector variation for these cases.
+
+```
+sector_groups = {classify_sic(segment_primary_sic) 
+                 for segment in segments}
+
+If len(sector_groups) == 1:
+    Use single-sector classification with sub-sector tag
+    from the dominant segment description
+    
+If len(sector_groups) >= 2:
+    Apply multi-segment blending across distinct sector groups
+```
+
+---
+
+### Blending Formula
+
+For each metric M, the blended benchmark is a revenue-weighted average of the sector medians for each segment's sector group:
+
+```
+blended_p50(M) = Σ_i [ weight_i × sector_p50(M, sector_i, size_category) ]
+
+blended_p25(M) = Σ_i [ weight_i × sector_p25(M, sector_i, size_category) ]
+
+blended_p75(M) = Σ_i [ weight_i × sector_p75(M, sector_i, size_category) ]
+
+Where:
+    weight_i         = segment_i_revenue / total_disclosed_revenue
+    sector_p50(M, S) = median value of metric M for sector S
+                       at the company's size_category
+                       (from sector_benchmarks table)
+    Σ weights        = 1.0 (weights sum to 100%)
+```
+
+**Normalisation when segment revenues do not sum to total revenue:**
+
+Companies sometimes disclose segment revenue that does not perfectly reconcile to consolidated revenue (due to intersegment eliminations, corporate/unallocated segments, or rounding). Normalise weights to sum to 1.0 using disclosed segment revenue only:
+
+```
+weight_i = segment_i_revenue / Σ(all_disclosed_segment_revenues)
+```
+
+Exclude segments classified as "Corporate / Unallocated / Eliminations" from the weight computation — these are not operating segments and do not map to a sector benchmark.
+
+**Size category for blending:**
+
+Use the company's overall size category (from Section 1, based on total assets) for all segment benchmarks. Do not attempt to assign different size categories to different segments — segment-level asset data is not reliably disclosed in a form that permits per-segment size classification.
+
+---
+
+### Segment Data Structure (Group 8 Output)
+
+Group 8 LLM extraction returns a structured JSON object with the following fields relevant to Section 5:
+
+```json
+{
+  "segments": [
+    {
+      "name": "Pharmaceutical",
+      "revenue": 38000,
+      "revenue_unit": "millions_usd",
+      "fraction": 0.56,
+      "primary_sic_inferred": "2836",
+      "sector_group": "Healthcare/Pharma",
+      "sub_sector": "branded_pharma",
+      "description_excerpt": "patented specialty medicines..."
+    },
+    {
+      "name": "MedTech",
+      "revenue": 30000,
+      "revenue_unit": "millions_usd",
+      "fraction": 0.44,
+      "primary_sic_inferred": "3841",
+      "sector_group": "Manufacturing/Industrials",
+      "sub_sector": null,
+      "description_excerpt": "surgical instruments, diagnostics..."
+    }
+  ],
+  "total_segment_revenue": 68000,
+  "corporate_eliminations": 700,
+  "dominant_segment": "Pharmaceutical",
+  "dominant_fraction": 0.56,
+  "blending_trigger": true,
+  "filing_period": "2024-12-31",
+  "evidence": "Segment revenues for the year ended..."
+}
+```
+
+The `sector_group` field is assigned by the LLM based on the segment description and inferred SIC. The LLM prompt instructs the model to assign sector groups from the fixed list defined in Section 2 — it does not invent new sector groups.
+
+---
+
+### Storage
+
+Segment data extracted by Group 8 is stored in a new table `segment_extractions`:
+
+```sql
+CREATE TABLE segment_extractions (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    cik                 TEXT NOT NULL,
+    filing_period       TEXT NOT NULL,
+    segment_name        TEXT NOT NULL,
+    revenue_millions    REAL,
+    revenue_fraction    REAL NOT NULL,
+    sector_group        TEXT NOT NULL,
+    sub_sector          TEXT,
+    description_excerpt TEXT,
+    evidence            TEXT,
+    extracted_at        TEXT NOT NULL,
+    FOREIGN KEY (cik) REFERENCES issuers(cik)
+);
+```
+
+One row per segment per filing period. When Group 8 is re-run for a company, existing rows for that CIK and filing period are deleted and replaced.
+
+The `issuers` table gains two new columns:
+
+```sql
+ALTER TABLE issuers ADD COLUMN blending_active INTEGER DEFAULT 0;
+-- 1 when multi-segment blending is in use for this company
+
+ALTER TABLE issuers ADD COLUMN segment_extraction_date TEXT;
+-- ISO date of most recent Group 8 extraction
+```
+
+---
+
+### Display
+
+When blending is active for a company, the sector label in the company header changes from a single sector to a blend description:
+
+```
+Without blending:
+  Sector: Healthcare / Pharma  |  Size: Large  |  Sub-sector: branded_pharma
+
+With blending:
+  Sector: Healthcare/Pharma (56%) + Manufacturing/Industrials (44%) blend
+  Size: Large  |  Benchmark: blended — see segment breakdown
+```
+
+In the metric table, the peer comparison column header changes from "vs sector median" to "vs blended median" and shows the composite blended value with expandable detail section using st.expander(), collapsed by default, showing the component breakdown:
+
+```
+Metric: leverage
+Company value:        4.2x
+Blended p50:          3.8x  (56% × Healthcare p50 3.5x + 44% × Manufacturing p50 4.2x)
+Quartile:             Lower middle ↘
+
+[▶ Show blend components]
+  Healthcare/Pharma (56%):   p25=2.1x  p50=3.5x  p75=5.2x  (8 companies)
+  Manufacturing/Industrials (44%):   p25=2.8x  p50=4.2x  p75=6.1x  (12 companies)
+```
+
+The component breakdown is collapsed by default. The analyst can expand it to see what each sector contributes to the blended benchmark and how many companies underlie each component.
+
+---
+
+### Boundary Conditions and Edge Cases
+
+**Edge case 1 — Segment maps to Financial Institutions sector:**
+
+If one of a company's segments is classified as Financial Institutions (e.g. GE Capital, Caterpillar Financial Products), that segment is excluded from blending. Financial institution benchmarks are suppressed throughout the system and cannot participate in a cross-sector blend.
+
+```
+If sector_group_i == "Financial Institutions":
+    Exclude segment_i from blending
+    Redistribute its weight proportionally to remaining segments
+    Flag: "financial services segment excluded from benchmark blend —
+           {segment_name} ({fraction:.0%} of revenue) not benchmarked"
+```
+
+**Edge case 2 — One segment has no benchmark available:**
+
+If a segment's sector group has fewer than 3 companies in the benchmark table (even after the fallback cascade), no benchmark exists for that component. The blend cannot be computed as specified.
+
+```
+If sector_p50(M, sector_i) is None for any segment_i:
+    Option A (preferred): compute partial blend using available segments only,
+                          renormalise weights to sum to 1.0 across available segments
+                          Flag: "{sector_i} component excluded — insufficient peer data;
+                                 blended benchmark uses {remaining_weight:.0%} of revenue"
+    
+    Option B: fall back to single-sector classification using dominant segment
+              Flag: "blended benchmark unavailable — insufficient peer data for
+                     {sector_i} component; single-sector benchmark applied"
+
+Apply Option A when the missing component is < 30% of revenue.
+Apply Option B when the missing component is >= 30% of revenue — 
+a 30%+ exclusion would make the partial blend materially unrepresentative.
+```
+
+**Edge case 3 — Segment revenue not disclosed in 10-Q:**
+
+ASC 280 requires full segment disclosure in annual 10-Ks but permits abbreviated segment disclosure in 10-Qs. If Group 8 runs on a 10-Q that does not contain full segment revenue data, use the most recent 10-K segment data with a staleness flag.
+
+```
+If segment_data.source == "10-K" AND segment_data.filing_period older than 15 months:
+    Flag: "segment data from {filing_period} 10-K — may not reflect current 
+           business mix; re-run LLM extraction on latest 10-K for updated blend"
+```
+
+**Edge case 4 — Three or more segments across three or more sectors:**
+
+The blending formula handles any number of segments — it is a weighted sum. No special handling is needed for 3+ segment companies. The display component breakdown shows one row per segment regardless of count. The composite weight constraint (Σ weights = 1.0) is enforced by normalisation.
+
+---
+
+### Relationship to Berger and Ofek (1995)
+
+The multi-segment blending methodology is grounded in the diversification discount literature. Berger and Ofek (1995) demonstrated that diversified conglomerates trade at a 13–15% discount to the sum of their pure-play segment values, using exactly the revenue-weighted benchmark approach defined here — comparing each segment against pure-play peers in the same industry and weighting by segment revenue.
+
+The credit risk application differs from the equity valuation application in one important respect: Berger and Ofek measured value destruction from diversification; this system uses the same blending methodology to construct a benchmark, not to measure a discount. The system does not assert that a conglomerate is penalised for diversification — it simply constructs the most accurate available peer comparison given the company's actual business mix.
+
+Reference: Berger, P.G. and Ofek, E. (1995). "Diversification's Effect on Firm Value." *Journal of Financial Economics*, 37(1), 39–65.
+
+---
+
+### Known Limitations and Model Boundary Conditions
+
+---
+
+**Limitation 1 — Segment Classification Relies on LLM Judgment**
+
+**Problem:**
+The `sector_group` assignment for each segment is made by the LLM based on the segment description text in the ASC 280 footnote. The LLM prompt constrains assignments to the nine sector groups defined in Section 2, but the assignment for ambiguous segments is a judgment call. A segment described as "digital health platforms and connected devices" could reasonably be classified as Healthcare/Pharma or Technology/Services. Different LLM runs or different prompt phrasings might produce different classifications for the same segment.
+
+**Materiality:**
+Moderate. For clear-cut segments (oil and gas production → Energy/Mining, retail pharmacy → Healthcare/Pharma) the classification is unambiguous. For technology-enabled healthcare, fintech, or industrial software segments the classification is genuinely ambiguous and reasonable analysts would disagree.
+
+**Interim mitigation:**
+Group 8 extraction returns a `description_excerpt` and `evidence` field for each segment classification. The analyst can review the LLM's reasoning in the Streamlit expandable detail panel. A manual override field (`segment_sector_override`) is available in the `segment_extractions` table for cases where the analyst disagrees with the LLM classification.
+
+```sql
+ALTER TABLE segment_extractions 
+ADD COLUMN sector_group_override TEXT DEFAULT NULL;
+-- When not null, use this value instead of sector_group for blending
+```
+
+**Phase 5 fix:**
+Build a segment classification validation layer — after LLM extraction, run a secondary check that compares the LLM's segment classification against the segment's reported SIC code (when available) and flags cases where the two disagree. Disagreements trigger a manual review prompt in the Streamlit UI.
+
+---
+
+**Limitation 2 — Revenue Weights Do Not Reflect Credit Risk Contribution**
+
+**Problem:**
+The blending formula weights each sector benchmark by segment revenue fraction. Revenue is the most readily available and consistently disclosed segment metric, making it the natural choice for weights. However revenue weighting may not accurately reflect each segment's contribution to the company's credit risk profile. A company with 60% revenue from a low-margin, asset-intensive retail segment and 40% revenue from a high-margin, asset-light software segment has a credit profile more heavily influenced by the retail segment's debt burden than the 60/40 revenue split suggests.
+
+More analytically correct weights would use segment EBITDA (for earnings contribution) or segment assets (for debt-backing contribution). However segment EBITDA and segment assets are disclosed less consistently than segment revenue, and are often presented before corporate allocations in ways that make them unreliable for mechanical weighting.
+
+**Materiality:**
+Moderate for companies where segment margin profiles differ significantly. Low for companies with similar margins across segments.
+
+**Interim mitigation:**
+When segment EBITDA is available from Group 8 extraction, compute an alternative EBITDA-weighted blend alongside the revenue-weighted blend and display both. Flag when the two blends differ by more than 10 percentage points on any weight: "revenue-weighted and EBITDA-weighted blends differ materially — review segment profitability breakdown."
+
+**Phase 5 fix:**
+Default to EBITDA-weighted blending when segment EBITDA is reliably available from Group 8 extraction. Use revenue weighting only as a fallback when EBITDA is not disclosed at segment level. Add a toggle in the Streamlit UI allowing the analyst to switch between revenue-weighted and EBITDA-weighted benchmarks.
+
+Reference: Damodaran, A. (2002). *Investment Valuation*, Chapter 24 — "Valuing Firms with Multiple Businesses." Discusses EBITDA-weighted vs revenue-weighted approaches to sum-of-parts analysis.
+
+---
+
+**Limitation 3 — Segment Mix Changes Are Not Retroactively Applied**
+
+**Problem:**
+Segment data is extracted from the most recent filing and applied as a static attribute. If a company's business mix changes materially — through acquisition, divestiture, or organic growth shifting revenue mix — the stored segment weights become stale. The blended benchmark continues to reflect the old business mix until the analyst manually re-runs Group 8 extraction.
+
+More importantly, for historical analysis (the 8-quarter display window in the Company Monitor), the current segment mix is applied uniformly to all historical periods. A company that acquired a technology division in Q3 2024 will have its pre-acquisition quarters benchmarked against a blend that includes the technology segment — which did not exist during those quarters.
+
+**Materiality:**
+High for companies undergoing active portfolio transformation. Low for stable conglomerates with consistent segment mix over time.
+
+**Interim mitigation:**
+Display the segment extraction date prominently in the Company Monitor. Flag when the extraction date is more than 12 months old. For historical quarters predating a known acquisition, show a note: "segment mix reflects current filing — historical periods may not reflect current business composition."
+
+**Phase 5 fix:**
+Implement point-in-time segment extraction — store segment weights by filing period in the `segment_extractions` table and join against the benchmark computation by period. This requires running Group 8 extraction for each historical 10-K in the analysis window, not just the most recent one. The `extracted_at` and `filing_period` columns in `segment_extractions` already support this — the Phase 5 work is building the historical extraction loop and the period-matched benchmark join logic.
+
+---
+
+### Cross-References
+
+- Sector group definitions used for segment classification: `SEGMENT_BENCHMARK_SPEC.md` → Section 2
+- Size category used for per-segment benchmark lookup: `SEGMENT_BENCHMARK_SPEC.md` → Section 1
+- `sector_benchmarks` table (source of sector_p25/p50/p75 values): `SEGMENT_BENCHMARK_SPEC.md` → Section 3
+- Group 8 LLM extraction implementation: deferred to Phase 5; prompt design to follow `llm_extractor.py` pattern from Groups 1–7a
+- Sub-sector classification for within-sector variation (alternative to blending when all segments share one sector group): `SEGMENT_BENCHMARK_SPEC.md` → Section 2 → Sub-Sector Classification Definitions
+- Financial institution suppression applied to segment blending: `SECTION_6.md` → Section 6.5
+
+
+
+## Section 6 — Known Limitations
+
+---
+
+### Purpose of this Section
+
+This section consolidates system-level limitations that span multiple components of the benchmark framework. Component-specific limitations are documented within their respective sections (Section 1 through Section 5). This section addresses limitations that cannot be attributed to a single component — they emerge from the interaction between components, from data availability constraints outside the system's control, or from fundamental methodological choices that affect the entire framework.
+
+Each limitation follows the standard format established in Section 1: Problem / Materiality / Interim Mitigation / Phase 5 Fix.
+
+---
+
+### Limitation 6.1 — Minimum Sample Sizes Produce Directional-Only Benchmarks for Most Cells
+
+**Problem:**
+
+The benchmark framework defines cells at three levels of specificity: sector × size × sub_sector (full), sector × size (no sub_sector), and sector only. The fallback cascade in Section 3 ensures the system always returns the most specific available benchmark. However at the current database size of 75 companies distributed across 9 sectors, 3 size tiers, and up to 4 sub_sectors per sector, the majority of full cells contain fewer than 3 companies and trigger the fallback cascade. Many sector × size cells also fall below the 3-company minimum, forcing a further fallback to sector-only benchmarks.
+
+The consequence is that the percentile values (p25/p50/p75) in most cells are computed from 3–7 companies rather than the 10–20 required for statistically stable quartile estimates. At n=3, the p25 and p75 values are essentially the minimum and maximum of the sample — they provide directional information but no meaningful distributional precision. A p75 leverage of 6.2x computed from 4 companies in the Small Retail cell could shift by 1–2x with the addition of a single new company.
+
+**Materiality:**
+
+High for Small-tier companies across all sectors and for all companies in Media/Entertainment, Healthcare/Pharma sub-sectors, and Technology/Services. Lower for Large and Mid-tier Manufacturing/Industrials, Retail/Wholesale, and Energy/Mining where the current database has 5–12 companies per sector × size cell.
+
+Estimated cell population from the current 75-company database after excluding financial institutions (Aflac, JPMorgan) and applying the size breakpoints from Section 1:
+
+| Sector | Large (>$10B) | Mid ($1B–$10B) | Small (<$1B) |
+|---|---|---|---|
+| Retail/Wholesale | 3 | 5 | 2 |
+| Energy/Mining | 3 | 4 | 2 |
+| Manufacturing/Industrials | 6 | 5 | 1 |
+| Healthcare/Pharma | 4 | 3 | 2 |
+| Technology/Services | 3 | 3 | 1 |
+| Media/Entertainment | 2 | 2 | 1 |
+| Business/Consumer Services | 1 | 2 | 1 |
+| Telecom/Utilities | 2 | 2 | 1 |
+
+Cells with fewer than 3 companies trigger fallback. Cells with 3–5 companies produce directional-only benchmarks. Only Manufacturing/Industrials Large has sufficient sample for reliable quartile estimates in the current database.
+
+**Interim Mitigation:**
+
+The `company_count` and `fallback_level` columns in the `sector_benchmarks` table are propagated to every benchmark display. The Streamlit UI and dashboard display a precision qualifier alongside every benchmark comparison:
+
+```
+≥ 10 companies:  "robust benchmark"          — no qualifier shown
+5–9 companies:   "limited benchmark (N companies)" — shown in grey
+3–4 companies:   "directional only (N companies)"  — shown in amber
+< 3 companies:   "no benchmark available"           — shown in grey, no comparison
+```
+
+Analysts are instructed to treat benchmarks from fewer than 5 companies as directional signals only — confirming a known concern rather than establishing a new one.
+
+**Phase 5 Fix:**
+
+Expand the company database to a minimum of 200 issuers with deliberate coverage of all sector × size cells. Target cell populations:
+
+```
+Minimum viable:     3 companies per cell  (enables percentile computation)
+Directional:        5 companies per cell  (p25/p75 stable to ±20%)
+Reliable:          10 companies per cell  (p25/p75 stable to ±10%)
+Production-grade:  20 companies per cell  (p25/p75 stable to ±5%)
+```
+
+Cell expansion priority: Small-tier companies across all sectors (currently the most sparse), followed by Media/Entertainment and Business/Consumer Services at all tiers. Use the `check_xbrl_coverage.py` diagnostic tool to pre-screen new companies before onboarding to ensure XBRL tag coverage is sufficient for the 16 benchmarked metrics.
+
+Additionally implement Bayesian shrinkage for sparse cells — shrink sparse cell percentiles toward the sector-only percentiles by a factor proportional to the inverse of sample size. This borrows statistical strength from the larger sector population without discarding sparse cell data entirely. Reference: James and Stein (1961), "Estimation with Quadratic Loss," *Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics and Probability*, 1, 361–379.
+
+---
+
+### Limitation 6.2 — Multi-Segment Blending Deferred Until Group 8 Is Implemented
+
+**Problem:**
+
+Approximately 20–30% of large-cap companies in the investment-grade universe have two or more materially distinct business segments with no single segment exceeding 80% of revenue. For these companies, Level 1 single-sector classification produces a benchmark peer group that does not accurately represent the company's actual credit profile. A company that is 60% industrial manufacturing and 40% financial services will be benchmarked against pure-play industrials — systematically underweighting the financial services component's contribution to the company's risk profile.
+
+Until Group 8 (segment footnote LLM extraction) is implemented, the system has no mechanism to identify which companies require blending or what weights to apply. Every company in the database receives Level 1 single-sector classification regardless of its actual business mix.
+
+**Materiality:**
+
+Moderate for the current 75-company database. The most affected companies in the current database are Conduent (IT services + BPO — borderline Technology/Business Services), Coty (consumer beauty + prestige fragrance — single sector but different sub-sector profiles), and any holding company manually classified. The distressed case library was selected for sector clarity so cross-sector conglomerates are underrepresented. Materiality increases significantly as the database expands to include large-cap conglomerates (GE, Honeywell, 3M, Berkshire Hathaway subsidiaries).
+
+**Interim Mitigation:**
+
+The `conglomerate_flag` field in the `issuers` table (defined in Section 2, Rule 5) identifies companies that require blending once Group 8 is available. For currently flagged conglomerates, display a persistent note in the Company Monitor:
+
+```
+"⚠ Multi-segment company — benchmark uses primary SIC sector only.
+ Press LLM button to extract segment data for blended benchmark
+ once Group 8 extraction is available."
+```
+
+This ensures analysts are aware of the limitation for specific companies rather than discovering it through unexplained benchmark divergence.
+
+**Phase 5 Fix:**
+
+Implement Group 8 segment footnote LLM extraction as defined in Section 5. Build the extraction prompt to return segment names, revenues, and sector group classifications from the ASC 280 footnote. Integrate with the existing LLM button trigger in the Streamlit app so segment extraction runs alongside Groups 1–7a when the analyst requests LLM extraction. Store results in `segment_extractions` table and update `blending_active` flag in `issuers` table. Full methodology defined in Section 5.
+
+---
+
+### Limitation 6.3 — Financial Institution Benchmarks Excluded from Cross-Sector Comparison
+
+**Problem:**
+
+Financial institutions (SIC 6000–6499, primarily banks and insurers) are excluded from all benchmark cell computations throughout this framework. This exclusion is correct and intentional — financial institution leverage, margins, and liquidity metrics are structurally incomparable to corporate metrics because their balance sheets include deposits, policyholder reserves, and regulatory capital requirements that have no corporate equivalent. Including Aflac's $130B total assets in a benchmark cell with Apple and Exxon would produce meaningless distributions.
+
+The consequence is that financial institution issuers in the database (currently Aflac and JPMorgan) receive no benchmark comparisons at all. Their metric values are displayed in the Company Monitor but without the peer quartile classification and composite peer score that other issuers receive. This creates an asymmetric user experience — financial institution issuers appear analytically underserved relative to corporate issuers.
+
+**Materiality:**
+
+Low for the current database (2 financial institution issuers out of 75). Moderate if the database expands to include a significant number of insurance companies or regional banks. High if the system is ever deployed for a portfolio with substantial financial institution exposure.
+
+**Interim Mitigation:**
+
+Display a clear explanation in the Company Monitor when a financial institution is selected:
+
+```
+"Financial institution — standard corporate benchmarks not applicable.
+ Regulatory capital ratios (CET1, Tier 1 capital ratio, LCR) govern
+ credit assessment for this institution type. Peer comparison requires
+ a separate financial institution benchmark framework."
+```
+
+Metrics that are computed for financial institutions despite the suppression rules (D/E ratio, asset coverage, loss provisions, revenue trend) continue to display their absolute alert levels without peer quartile classification.
+
+**Phase 5 Fix:**
+
+Implement a separate financial institution benchmark framework using institution-appropriate metrics. The corporate metric set is replaced or supplemented by:
+
+```
+Regulatory capital:   CET1 ratio, Tier 1 capital ratio
+Asset quality:        Non-performing loan ratio, loan loss reserve coverage ratio
+Liquidity:            LCR (Liquidity Coverage Ratio), NSFR (Net Stable Funding Ratio)
+Profitability:        Return on assets (ROA), net interest margin (NIM)
+Funding stability:    Deposit-to-asset ratio, wholesale funding reliance
+```
+
+These metrics are available from SEC filings for bank holding companies (Call Report data is publicly available via FFIEC) and from 10-K disclosures for insurance companies (statutory filings via NAIC, supplemented by GAAP 10-K). The framework architecture (cell definition, percentile computation, fallback cascade) is identical to the corporate framework — only the metric set changes. Reference: Basel Committee on Banking Supervision (2019), "Minimum Capital Requirements for Market Risk" — defines the regulatory capital metrics that serve as the primary credit signal for financial institutions.
+
+---
+
+### Limitation 6.4 — Benchmark Reflects Current Database Composition, Not the Full Credit Universe
+
+**Problem:**
+
+The sector benchmark medians are computed exclusively from the 75 companies in the current database. This database was constructed for backtest validation purposes — it over-represents distressed companies (30 of 75 are bankrupt or severely stressed) and under-represents investment-grade companies in certain sectors. The resulting benchmark distributions are systematically skewed toward stress relative to the true population of all US corporate bond issuers.
+
+A concrete example: the Retail/Wholesale sector benchmark for leverage is computed from approximately 10 retail companies, of which 8 are distressed (Rite Aid, Bed Bath & Beyond, JCPenney, Sears, Party City, Pier 1, Tailored Brands, Tupperware) and 2 are healthy (Walmart, Costco). The resulting p50 leverage for Retail is pulled substantially higher than the actual retail sector median across all issuers. A healthy mid-cap retailer with leverage of 3x would appear in the top quartile of this benchmark — which is correct relative to this database but misleading relative to the actual retail universe.
+
+**Materiality:**
+
+High for all sectors where distressed companies constitute more than 30% of the cell population. In the current database this affects Retail, Energy, Media, and Pharma cells at all size tiers. Low for Manufacturing/Industrials and Technology/Services where the healthy controls dominate.
+
+**Interim Mitigation:**
+
+The `benchmark_exclude` flag defined in Section 3 (Limitation 2) can be set to 1 for distressed companies to produce a healthy-company-only benchmark. However this is not implemented in Phase 4 — it is designated as a Phase 5 task to avoid removing distressed companies from the distribution before the impact is understood.
+
+Display a database composition note in the benchmark section of the UI. Display cell-level composition in the benchmark expandable detail: 'Cell: N companies (D distressed, H healthy).' This requires distressed_count alongside company_count in the sector_benchmarks table — a single additional column computed at benchmark generation time.:
+
+```
+"Benchmark database: 75 companies (30 distressed, 31 healthy controls,
+ 12 stressed survivors, 2 financial institutions).
+ Distressed companies are included in peer distributions — benchmarks
+ reflect a stress-weighted sample, not the full investment-grade universe."
+```
+
+**Phase 5 Fix:**
+
+Implement dual benchmark computation as described in Section 3 Limitation 2: compute both an all-companies benchmark and a healthy-only benchmark (using `benchmark_exclude` to filter distressed cases). Display both in the Streamlit UI with clear labeling. For investment-grade portfolio monitoring, the healthy-only benchmark is the more appropriate reference. For distressed debt analysis, the all-companies benchmark (including peer distressed companies) is more informative.
+
+Additionally expand the database to include a representative sample of investment-grade issuers across all sectors — not selected for distress history — to bring the benchmark distribution closer to the true corporate universe.
+
+---
+
+### Limitation 6.5 — Static Benchmark Computation Does Not Reflect Market Cycle Position
+
+**Problem:**
+
+The benchmark table is computed from a snapshot of the database at a single point in time. For cyclical sectors (Energy/Mining, Manufacturing/Industrials, Media/Entertainment), the peer metric distributions shift substantially across the economic cycle. An Energy/E&P benchmark computed in 2020 (commodity price collapse, widespread bankruptcies) reflects a severely stressed distribution. The same benchmark computed in 2022 (commodity price peak, high margins) reflects a healthy distribution. A company analyzed in 2024 using a benchmark computed from 2022 data will appear more stressed than it actually is relative to current peers.
+
+This is distinct from Limitation 3 in Section 3 (latest-period selection for individual companies) — that limitation addresses which period's value is used for a specific company. This limitation addresses the broader issue that the entire benchmark distribution reflects the cycle position at the time of database population, not the current cycle position.
+
+**Materiality:**
+
+High for Energy/Mining and Manufacturing/Industrials over multi-year analysis windows. Moderate for Retail and Media. Low for Healthcare/Pharma, Technology/Services, and Telecom/Utilities which are less cyclical.
+
+**Interim Mitigation:**
+
+Display the `computed_at` timestamp on all benchmarks. For Energy/Mining and Manufacturing/Industrials benchmarks, add a cyclicality warning:
+
+```
+"Cyclical sector — benchmark reflects database conditions as of {computed_at}.
+ Interpret leverage and coverage benchmarks with awareness of commodity/
+ industrial cycle position at that date."
+```
+
+**Phase 5 Fix:**
+
+Implement through-the-cycle benchmark computation for cyclical sectors. Rather than using the latest single period value for each company, compute each company's median value across its full 8-quarter history before computing the peer distribution. This produces a mid-cycle benchmark that is less sensitive to point-in-time cycle position. The methodology is available in the current database — every company has 8 quarters of `metric_values` stored — but requires changes to the `recompute_all_benchmarks()` query to aggregate across periods rather than using only the latest period. Reference: Standard and Poor's (2013), "Corporate Methodology," Section 4 — "Through-the-Cycle Assessment" — describes the rationale for cycle-adjusted financial ratio analysis in credit rating.
+
+---
+
+### Limitation 6.6 — Composite Peer Score Weights Are Derived from a Small Backtest Sample
+
+**Problem:**
+
+The metric weights used in the composite peer score (Section 4) are derived from Cohen's d values computed on a backtest of 30 distressed and 31 healthy companies. At this sample size, individual Cohen's d estimates have wide confidence intervals — only leverage and interest_coverage have CI lower bounds above the medium effect threshold (d > 0.5). The remaining 14 metrics have Cohen's d estimates that could plausibly be zero or negative at the 95% confidence level. Weights assigned to these metrics (ranging from 1 to 2) are therefore directional guidance based on limited statistical evidence, not precisely calibrated multipliers.
+
+The composite peer score inherits this uncertainty — it is a weighted sum of 16 uncertain components. A composite score difference of less than 10 points between two companies should not be interpreted as analytically meaningful given the underlying parameter uncertainty.
+
+**Materiality:**
+
+Moderate for the composite score itself. The absolute alert levels (from `thresholds.py`) are unaffected — this limitation applies only to the peer-relative composite score. Individual metric quartile classifications are also unaffected — they depend on the benchmark distributions, not on Cohen's d weights.
+
+**Interim Mitigation:**
+
+Display the sample size disclosure defined in Section 4 alongside the composite score. Do not present composite score differences of less than 10 points as significant. In the Streamlit UI, round composite scores to the nearest 5 to discourage false precision.
+
+**Phase 5 Fix:**
+
+Recalibrate composite score weights with a target backtest database of n ≥ 200 distressed cases across multiple credit cycles. At n=200, Cohen's d confidence intervals narrow sufficiently that medium-effect metrics (d ≈ 0.5) can be distinguished from zero-effect metrics with reasonable confidence. Use logistic regression with cross-validation rather than Cohen's d as the primary calibration method at this sample size — logistic regression weights are directly interpretable as relative predictive contribution and are more appropriate for a multi-metric composite score than pairwise effect sizes. Reference: Hosmer, D.W. and Lemeshow, S. (2000), *Applied Logistic Regression*, 2nd edition — Chapter 5, "Assessing the Fit of the Model."
+
+---
+
+### Cross-References
+
+- Component-specific limitations (by section):
+  - Size classification boundary conditions: Section 1 — Known Limitations
+  - Sector classification SIC accuracy and conglomerate handling: Section 2 — Known Limitations
+  - Benchmark computation sparse cells, point-in-time bias, cyclical context: Section 3 — Known Limitations
+  - Composite score sector weights, quartile calibration, sample size: Section 4 — Known Limitations
+  - Segment classification LLM judgment, revenue vs EBITDA weighting, segment staleness: Section 5 — Known Limitations
+
+- System-wide limitations referenced elsewhere in the project:
+  - Financial institution suppression rules: `SECTION_6.md` → Section 6.5
+  - XBRL tag coverage gaps across 75 issuers: `run_coverage_check.py` batch diagnostic output
+  - LLM extraction point-in-time limitation (Groups 1–7a): project `README.md` → Known Limitations
+  - Backtest sector coverage weighting (retail 27%, energy 23%): project `README.md` → Known Limitations
 
