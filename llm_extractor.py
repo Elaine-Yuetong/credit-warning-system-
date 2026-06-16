@@ -242,7 +242,8 @@ def extract_debt_terms(source: DebtFootnote | str, *, client: Optional["anthropi
     # a DB error must never lose the extraction.
     if isinstance(source, DebtFootnote):
         try:
-            save_to_db(result, source.cik, source.accession, source.form_type, model)
+            save_to_db(result, source.cik, source.accession, source.form_type, model,
+                       footnote_text=source.text, footnote_gc_text=source.going_concern_text)
         except Exception as exc:  # pragma: no cover
             print(f"warning: could not persist extraction to SQLite: {exc}", file=sys.stderr)
     return result
@@ -286,8 +287,11 @@ def _year_bucket(label: Optional[str]) -> Optional[str]:
 
 
 def save_to_db(result: DebtFootnoteExtraction, cik: str, accession: Optional[str],
-               form_type: Optional[str], model: str, db_path: Optional[str] = None) -> None:
-    """Flatten `result` into one llm_extractions row and write it (ON CONFLICT REPLACE)."""
+               form_type: Optional[str], model: str, db_path: Optional[str] = None,
+               footnote_text: str = "", footnote_gc_text: str = "") -> None:
+    """Flatten `result` into one llm_extractions row and write it (ON CONFLICT REPLACE).
+    The raw debt-footnote text (footnote_text) and going-concern text (footnote_gc_text) fed to
+    the LLM are embedded into raw_json so the source is recoverable (Streamlit raw-footnote view)."""
     import db as _db  # lazy import to avoid any import cycle
 
     lev = _first(result.covenants, lambda c: (c.covenant_type or "") == "leverage")
@@ -307,6 +311,12 @@ def save_to_db(result: DebtFootnoteExtraction, cik: str, accession: Optional[str
     in_compliance = 1 if comp.status == "in_compliance" else 0
     springing = 1 if any(c.is_springing for c in result.covenants) else 0
     rev = result.revolver
+
+    # raw_json = the structured extraction plus the verbatim source text fed to the LLM.
+    raw = result.model_dump()
+    raw["footnote_text"] = footnote_text or None
+    raw["footnote_gc_text"] = footnote_gc_text or None
+    raw_json = json.dumps(raw, default=str)
 
     conn = _db.connect(db_path or _db.DB_PATH)
     conn.execute(
@@ -330,7 +340,7 @@ def save_to_db(result: DebtFootnoteExtraction, cik: str, accession: Optional[str
          (rev.drawn_amount_millions if rev.exists else None),
          (rev.undrawn_availability_millions if rev.exists else None),
          (rev.maturity_date if rev.exists else None),
-         result.model_dump_json()),
+         raw_json),
     )
     conn.commit()
     conn.close()
