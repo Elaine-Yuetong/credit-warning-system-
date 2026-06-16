@@ -34,7 +34,20 @@ rows = a.load_sector_benchmarks(
 )
 
 if not rows:
-    st.info("No benchmark data for this selection.")
+    counts = a.sector_company_counts()
+    n = counts.get(selected_sector, 0)
+    if selected_sector == "All sectors":
+        st.info("No benchmark data for this selection — try removing the size filter.")
+    elif n == 0:
+        st.warning(f"**{selected_sector}** — no companies in database yet. "
+                   f"Use the Search page to add companies from this sector.")
+    elif n < 3:
+        st.warning(f"**{selected_sector}** — only {n} healthy "
+                   f"{'company' if n == 1 else 'companies'} in database. "
+                   f"Minimum 3 required for benchmark computation. "
+                   f"Add more {selected_sector} companies to enable benchmarks.")
+    else:
+        st.info("No benchmark data for this selection — try removing the size filter.")
 else:
     df = pd.DataFrame(rows)
     df["Metric"] = df["metric_name"].apply(lambda m: f"{_arrow(m)} {m}")
@@ -71,30 +84,40 @@ else:
 # ── Section C — sector overview cards (only on the full unfiltered view) ─────────────
 if selected_sector == "All sectors" and selected_size == "All sizes":
     st.divider()
-    st.subheader("Sector Overview")
-    st.caption("Sector-level medians (leverage / interest coverage) across healthy peers.")
-    all_rows = a.load_sector_benchmarks()
-    summary: dict = {}
-    for r in all_rows:
-        if r["fallback_level"] != "sector_only":
-            continue
-        s = r["sector_group"]
-        summary.setdefault(s, {"companies": r["company_count"],
-                               "distressed_excl": r["distressed_count"]})
-        if r["metric_name"] == "leverage":
-            summary[s]["leverage_p50"] = r["p50"]
-        if r["metric_name"] == "interest_coverage":
-            summary[s]["coverage_p50"] = r["p50"]
+    st.subheader("Sector Coverage Overview")
+    st.caption("Shows all defined sectors. Grey cards have insufficient healthy peers for "
+               "benchmark computation.")
 
-    if not summary:
-        st.info("No sector-level benchmarks available.")
-    else:
-        cards = st.columns(3)
-        for i, (sector, data) in enumerate(sorted(summary.items())):
-            with cards[i % 3]:
+    counts = a.sector_company_counts()
+    all_rows = a.load_sector_benchmarks()
+
+    sectors_summary: dict = {}
+    for r in all_rows:
+        if r["fallback_level"] == "sector_only":
+            s = r["sector_group"]
+            sectors_summary.setdefault(s, {"companies": r["company_count"],
+                                           "distressed_excl": r["distressed_count"]})
+            if r["metric_name"] == "leverage":
+                sectors_summary[s]["leverage_p50"] = r["p50"]
+            if r["metric_name"] == "interest_coverage":
+                sectors_summary[s]["coverage_p50"] = r["p50"]
+
+    cards = st.columns(3)
+    for i, sector in enumerate(a.ALL_SECTORS):
+        with cards[i % 3]:
+            if sector in sectors_summary:
+                data = sectors_summary[sector]
                 lev = f"{data['leverage_p50']:.1f}x" if data.get("leverage_p50") is not None else "—"
                 cov = f"{data['coverage_p50']:.1f}x" if data.get("coverage_p50") is not None else "—"
                 st.metric(label=sector, value=f"Leverage {lev}", delta=f"Coverage {cov}",
                           delta_color="off")
-                st.caption(f"{data['companies']} healthy companies "
-                           f"({data['distressed_excl']} distressed excluded)")
+                st.caption(f"{data['companies']} healthy companies · "
+                           f"{data['distressed_excl']} distressed excluded")
+            else:
+                n = counts.get(sector, 0)
+                st.metric(label=sector, value="—", delta=None)
+                if n == 0:
+                    st.caption(":white_large_square: No companies in database")
+                else:
+                    st.caption(f":warning: {n} healthy {'company' if n == 1 else 'companies'} "
+                               f"— need ≥3 for benchmarks")

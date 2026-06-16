@@ -143,13 +143,36 @@ def load_sector_benchmarks(sector_group: str = None,
     return rows
 
 
+# All 9 defined sector groups from SEGMENT_BENCHMARK_SPEC.md Section 2.
+ALL_SECTORS = [
+    "Business / Consumer Services",
+    "Energy / Mining",
+    "Financial Institutions",
+    "Healthcare / Pharma",
+    "Manufacturing / Industrials",
+    "Media / Entertainment",
+    "Real Estate",
+    "Retail / Wholesale",
+    "Services / Technology",
+    "Telecom / Utilities",
+]
+
+
 def available_sectors() -> list[str]:
-    """Distinct sector groups that have benchmark data."""
+    """Return all defined sector groups. Sectors without benchmark data are included
+    so they appear in the UI with an 'insufficient data' message rather than disappearing."""
+    return ALL_SECTORS
+
+
+def sector_company_counts() -> dict[str, int]:
+    """Count of healthy (benchmark_exclude=0) companies per sector in the database."""
     conn = sqlite3.connect(DB_PATH)
-    rows = [r[0] for r in conn.execute(
-        "SELECT DISTINCT sector_group FROM sector_benchmarks ORDER BY sector_group")]
+    rows = conn.execute(
+        "SELECT sector_group, COUNT(*) FROM issuers "
+        "WHERE benchmark_exclude=0 GROUP BY sector_group"
+    ).fetchall()
     conn.close()
-    return rows
+    return {r[0]: r[1] for r in rows}
 
 
 def company_in_db(cik: str) -> bool:
