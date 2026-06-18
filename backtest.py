@@ -261,7 +261,7 @@ def _score_at(cik: str, as_of: str, client: SecClient) -> Optional[ScorePoint]:
     result = extract(cik, client=client, as_of=as_of)
     if result is None or not result.periods:
         return None
-    cls = classify(result.metadata.sic_code)
+    cls = classify(result.metadata.sic_code, result.metadata.sic_description)
     metrics = compute_metrics(result, cls.institution_type)
     assign_alerts(metrics, cls)
 

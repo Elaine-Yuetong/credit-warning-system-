@@ -46,8 +46,10 @@ class Classification:
     de_group: str                 # asset_light | standard | capital_intensive | real_estate | NA
 
 
-def classify(sic_code: Optional[str]) -> Classification:
-    """Map a SIC code to sector/volatility/institution/D-E-group classifications (§6.2)."""
+def classify(sic_code: Optional[str], sic_description: Optional[str] = None) -> Classification:
+    """Map a SIC code (+ optional plain-English sic_description) to sector/volatility/
+    institution/D-E-group classifications (§6.2). The description resolves sectors the SIC
+    number misranges (e.g. a streaming company tagged under software)."""
     try:
         sic = int(sic_code) if sic_code is not None else -1
     except (TypeError, ValueError):
@@ -79,6 +81,33 @@ def classify(sic_code: Optional[str]) -> Classification:
     if 4800 <= sic <= 4899:                # telephone / radiotelephone / other communications
         return Classification("Telecom / Utilities", "Standard", "corporate", "standard", "capital_intensive")
 
+    # ── Description-based classification — redirects broad-range SICs when the plain-English
+    # description clearly indicates a sector the SIC number misranges. Placed AFTER the precise
+    # SIC carve-outs above (financial / energy-refining / pharma / telecom / media) so those exact
+    # classifications and their thresholds are preserved — only broad-range SICs are redirected,
+    # which keeps the backtest unchanged (no threshold drift). ──
+    if sic_description:
+        desc = sic_description.lower()
+        if any(w in desc for w in [
+                "motion picture", "video", "entertainment", "broadcasting", "cable",
+                "streaming", "television", "radio", "music", "theater", "amusement",
+                "recreation", "sports"]):
+            return Classification("Media / Entertainment", "Standard", "corporate", "standard", "capital_intensive")
+        if any(w in desc for w in [
+                "petroleum", "oil", "gas", "mining", "coal", "refining", "drilling"]):
+            return Classification("Energy / Mining", "Standard", "corporate", "standard", "standard")
+        if any(w in desc for w in [
+                "pharmaceutical", "drug", "biotech", "medical", "hospital",
+                "health services", "surgical", "therapeutic"]):
+            return Classification("Healthcare / Pharma", "Standard", "corporate", "retail_manufacturing", "standard")
+        if any(w in desc for w in [
+                "telephone", "telecommunications", "wireless", "cellular",
+                "satellite", "communications services"]):
+            return Classification("Telecom / Utilities", "Standard", "corporate", "standard", "capital_intensive")
+        if any(w in desc for w in [
+                "real estate", "reit", "property", "realty", "mortgage"]):
+            return Classification("Real Estate", "Low", "corporate", "standard", "real_estate")
+
     # ── Broad ranges ──
     if 100 <= sic <= 1499:                 # crude oil & gas, metal / coal mining
         return Classification("Energy / Mining", "Standard", "corporate", "standard", "standard")
@@ -89,6 +118,8 @@ def classify(sic_code: Optional[str]) -> Classification:
         return Classification("Manufacturing / Industrials", "Standard", "corporate", "retail_manufacturing", "standard")
     if 4000 <= sic <= 4799:                # rail / trucking / air / water freight -> industrials
         return Classification("Manufacturing / Industrials", "Standard", "corporate", "standard", "capital_intensive")
+    if sic == 4953:    # refuse/waste disposal — industrial services not utilities
+        return Classification("Manufacturing / Industrials", "Standard", "corporate", "standard", "capital_intensive")
     if 4900 <= sic <= 4999:                # electric / gas / water utilities
         return Classification("Telecom / Utilities", "Low", "corporate", "utility", "capital_intensive")
     if 5000 <= sic <= 5999:
@@ -97,6 +128,8 @@ def classify(sic_code: Optional[str]) -> Classification:
         return Classification("Real Estate", "Low", "corporate", "standard", "real_estate")
     if 7370 <= sic <= 7379:                # computer programming / data processing / software
         return Classification("Services / Technology", "Standard", "corporate", "standard", "asset_light")
+    if 7810 <= sic <= 7999:                # motion picture, video, amusement, entertainment
+        return Classification("Media / Entertainment", "Standard", "corporate", "standard", "capital_intensive")
     if 7000 <= sic <= 8999:                # hotels, business / professional / personal services
         return Classification("Business / Consumer Services", "Standard", "corporate", "standard", "asset_light")
     # Unknown SIC -> Standard, the most conservative corporate default.

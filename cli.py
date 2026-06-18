@@ -221,7 +221,7 @@ def run(cik: str) -> int:
         return 1
 
     #2. Field classfication
-    cls = classify(result.metadata.sic_code)
+    cls = classify(result.metadata.sic_code, result.metadata.sic_description)
 
     #3. Calculate
     metrics = compute_metrics(result, cls.institution_type)

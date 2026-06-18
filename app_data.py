@@ -194,7 +194,7 @@ def ensure_company(cik: str) -> bool:
     result = extract(cik, client=SecClient())
     if result is None:
         return False
-    cls = classify(result.metadata.sic_code)
+    cls = classify(result.metadata.sic_code, result.metadata.sic_description)
     ms = compute_metrics(result, cls.institution_type)
     assign_alerts(ms, cls, _load_llm_loss_provisions(result.metadata.cik))
     conn = _db.connect()

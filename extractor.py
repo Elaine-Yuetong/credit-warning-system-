@@ -479,6 +479,7 @@ class IssuerMetadata:
     sic_code: Optional[str]
     fiscal_year_end: Optional[str]  # MM-DD
     has_10k: bool
+    sic_description: Optional[str] = None  # EDGAR sicDescription, for description-based classify()
 
 
 def fetch_issuer_metadata(client: SecClient, cik: str) -> Optional[IssuerMetadata]:
@@ -508,6 +509,7 @@ def fetch_issuer_metadata(client: SecClient, cik: str) -> Optional[IssuerMetadat
 
     #extract SIC code
     sic = data.get("sic")
+    sic_desc = data.get("sicDescription")
     return IssuerMetadata(
         cik=cik10,
         name=name,
@@ -515,6 +517,7 @@ def fetch_issuer_metadata(client: SecClient, cik: str) -> Optional[IssuerMetadat
         sic_code=str(sic) if sic not in (None, "") else None,
         fiscal_year_end=fiscal_year_end,
         has_10k=has_10k,
+        sic_description=str(sic_desc) if sic_desc not in (None, "") else None,
     )
 
 
