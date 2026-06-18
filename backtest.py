@@ -152,6 +152,38 @@ DISTRESSED: list[Case] = [
     # --- Healthcare (2) ---
     Case("Quorum Health",     "0001650445", "2020-04-07", ("QUORUM",)),             # (corrected) src→Surgery Partners
     Case("Envision Healthcare","0001678531", "2023-05-15", ("ENVISION",)),
+
+    # ==================================================================
+    # Phase-3 expansion — batch 2 (2008–2024 filers). Same verification:
+    # correct CIK + us-gaap companyfacts confirmed. (corrected) marks a CIK
+    # resolved via EDGAR search because the source-list CIK pointed elsewhere.
+    # Names reflect the current EDGAR entity (often post-bankruptcy renamed).
+    # ==================================================================
+    # --- Retail (5) ---
+    Case("Wet Seal",          "0000863456", "2015-01-15", ("WET SEAL", "SEAL123")),  # (corrected) src 884217=Tailored Brands (already in lib)
+    Case("Delia's",           "0001337885", "2014-12-07", ("DELIA",)),               # (corrected) src→Dick's Sporting Goods
+    Case("Quiksilver",        "0000805305", "2015-09-09", ("QUIKSILVER",)),
+    Case("bebe stores",       "0001059272", "2017-05-01", ("BEBE",),                 # (corrected) src→NVIDIA
+         "store-fleet liquidation / wind-down 2017, not a formal Ch.11 — severe distress signal"),
+    Case("Gordmans",          "0001490636", "2017-03-13", ("G-ESTATE", "GORDMANS")), # (corrected) src→Zoetis; now G-Estate Liquidation
+    # --- Energy (6) ---
+    Case("Magnum Hunter",     "0001335190", "2015-12-15", ("MAGNUM HUNTER",)),       # (corrected) src→EPAM Systems
+    Case("Halcon Resources",  "0001282648", "2016-07-27", ("BATTALION", "HALCON")),  # (corrected) src→Mechanics Bancorp; now Battalion Oil
+    Case("Breitburn Energy",  "0001357371", "2016-05-15", ("BREITBURN",)),           # (corrected) src→Creative Realities
+    Case("EXCO Resources",    "0000316300", "2018-01-15", ("EXCO",)),                # (corrected) src→comScore
+    Case("Goodrich Petroleum","0000943861", "2016-04-15", ("GOODRICH",)),
+    Case("Armstrong Energy",  "0001532288", "2017-11-01", ("ARMSTRONG ENERGY",)),    # (corrected) src→PlayAGS
+    # --- Materials / Industrials (2) ---
+    Case("Momentive (Hexion)","0000013239", "2019-04-01", ("HEXION", "MOMENTIVE"),   # (corrected) src→Anywhere Real Estate; now Hexion
+         "Hexion (ex-Momentive Specialty) Ch.11 filed 2019-04-01; source date 2014 was the sister MPM entity"),
+    Case("Molycorp",          "0001489137", "2015-06-25", ("MOLYCORP",)),
+    # --- Technology (1) ---
+    Case("Avaya",             "0001418100", "2017-01-19", ("AVAYA",),
+         "private until 2018 IPO — little pre-event XBRL; likely insufficient_history"),
+    # --- Media (1) ---
+    Case("Lee Enterprises",   "0000058361", "2024-01-30", ("LEE ENTERPRISES",)),
+    # --- Services (1) ---
+    Case("Monitronics",       "0001265107", "2019-06-30", ("MONITRONICS", "BRINKS HOME")),  # (corrected) src 1043000=Sonida Senior Living
 ]
 
 # ----------------------------------------------------------------------------------------
@@ -176,6 +208,12 @@ DISTRESSED: list[Case] = [
 #   Charming Shoppes (2012)      acquired by Ascena Retail — an M&A, not Chapter 11; src 768835 = Former BL Stores
 #   Callon Petroleum (2020)      did NOT file Ch.11 — survived 2020, later acquired by APA (2024); src 928054 = Flotek
 #   Metals USA (2011)            acquired by Reliance Steel (2013); no 2011 bankruptcy; src 1004702 = OceanFirst Financial
+#
+#   --- batch 2 drops (3 of 19) ---
+#   Loehmann's (2013)            no XBRL — 843081/60064 both 0 us-gaap facts; src 60519 = Louisiana-Pacific
+#   Dots LLC (2014)              private retailer — no public XBRL; src 1585583 = Del Taco
+#   Tronox (2009)                2009 filer TRONOX INC (1328910) = 0 facts (pre-XBRL); src 1530804 =
+#                                Tronox Holdings plc, the post-2012 reincorporation that did not file in 2009
 # ----------------------------------------------------------------------------------------
 
 HEALTHY: list[Case] = [
