@@ -112,7 +112,71 @@ DISTRESSED: list[Case] = [
     Case("Conduent",          "0001677703", "2024-12-09", ("CONDUENT",)),
     Case("Coty",              "0001024305", "2020-04-01", ("COTY",),
          "debt exchange not formal bankruptcy — verify stress signal"),
+
+    # ==================================================================
+    # Phase-3 expansion — verified Chapter 11 filers with EDGAR XBRL.
+    # CIKs marked (corrected) were resolved via EDGAR company search; the
+    # CIK in the source batch list pointed to an unrelated issuer (see the
+    # exclusion ledger at the bottom of this file). Each correct CIK was
+    # confirmed to (a) resolve to the expected issuer and (b) carry us-gaap
+    # companyfacts. Names reflect the current (often post-bankruptcy or
+    # post-merger) entity name in EDGAR; name_contains accepts both.
+    # ==================================================================
+    # --- Retail (8) ---
+    Case("RadioShack",        "0000096289", "2015-02-05", ("RS LEGACY", "RADIOSHACK")),
+    Case("Gymboree",          "0000786110", "2017-06-11", ("GYMBOREE",)),
+    Case("Coldwater Creek",   "0001018005", "2014-04-11", ("COLDWATER",)),          # (corrected) src→L-3 Communications
+    Case("Stein Mart",        "0000884940", "2020-08-02", ("STEIN MART",)),         # (corrected) src→Stewart Info Svcs
+    Case("Christopher & Banks","0000883943", "2021-01-13", ("CHRISTOPHER & BANKS",)),# (corrected) src→Argo Group
+    Case("Tuesday Morning",   "0000878726", "2020-05-27", ("TUESDAY MORNING",)),    # (corrected) src→Superior Group
+    Case("J.Crew",            "0001051251", "2020-05-04", ("J CREW", "J. CREW")),   # (corrected) src→DexCom
+    Case("Neiman Marcus",     "0001358651", "2020-05-07", ("NEIMAN MARCUS",)),      # (corrected) src→Under Armour
+    # --- Energy / Coal (8) ---
+    Case("Peabody Energy",    "0001064728", "2016-04-13", ("PEABODY",)),
+    Case("Walter Energy",     "0000837173", "2015-07-15", ("WALTER ENERGY",)),
+    Case("Patriot Coal",      "0001376812", "2012-07-09", ("PATRIOT COAL",)),       # (corrected) src→Global Partners LP
+    Case("Arch Coal",         "0001037676", "2016-01-11", ("ARCH RESOURCES", "ARCH COAL")),
+    Case("Alpha Natural Res", "0001301063", "2015-08-03", ("ALPHA NATURAL",)),
+    Case("Midstates Petroleum","0001533924", "2016-04-30", ("AMPLIFY ENERGY", "MIDSTATES")),
+    Case("Penn Virginia",     "0000077159", "2016-05-12", ("BAYTEX", "PENN VIRGINIA")),
+    Case("Oasis Petroleum",   "0001486159", "2020-09-30", ("CHORD ENERGY", "OASIS"),
+         "Ch.11 filed 2020-09-30 (source list date 2019 was a year off); now Chord Energy"),
+    # --- Materials / Industrials (4) ---
+    Case("Verso",             "0001421182", "2016-01-26", ("BILLERUD", "VERSO")),   # (corrected) src→Intrepid Potash
+    Case("Exide Technologies","0000813781", "2013-06-10", ("EXIDE",)),              # (corrected) src→Ecolab
+    Case("Noranda Aluminum",  "0001422105", "2016-02-08", ("NORANDA",)),            # (corrected) src→PMFG
+    Case("Horsehead Holding", "0001385544", "2016-02-02", ("HORSEHEAD",)),          # (corrected) src→HCI Group
+    # --- Tech / Media (2) ---
+    Case("Eastman Kodak",     "0000031235", "2012-01-19", ("EASTMAN KODAK", "KODAK")),
+    Case("Emmis Communications","0000783005", "2012-04-30", ("EMMIS",)),
+    # --- Healthcare (2) ---
+    Case("Quorum Health",     "0001650445", "2020-04-07", ("QUORUM",)),             # (corrected) src→Surgery Partners
+    Case("Envision Healthcare","0001678531", "2023-05-15", ("ENVISION",)),
 ]
+
+# ----------------------------------------------------------------------------------------
+# Exclusion ledger — Phase-3 expansion source names NOT added, with the reason.
+# Kept here (not as Cases) because they cannot be scored: no point-in-time XBRL exists, or
+# the named event is not a Chapter 11. The source-batch CIK is shown where it resolved to an
+# unrelated issuer.  (15 of the 39 source rows.)
+#
+#   Frontier Airlines (2008)     pre-XBRL; CIKs 1351548/921929 carry 0 us-gaap facts
+#   Circuit City (2008)          pre-XBRL; correct CIK 104599 = 0 facts; src 200406 = Johnson & Johnson
+#   Smurfit-Stone (2009)         event pre-dates first companyfacts; src 93676 = L.S. Starrett
+#   Extended Stay (2009)         bankrupt entity 1002579 has no XBRL; XBRL entity 1581164 is the
+#                                post-2013-IPO successor that did not file in 2009; src 1430259 = Carey Watermark
+#   Charter Comms (2009)         pre-XBRL event (Mar 2009) — no knowable pre-event quarters
+#   iHeartMedia 2009             pre-XBRL predecessor entity (iHeartCommunications 739708); 2018 case already covered
+#   Regent Communications (2010) pre-XBRL; src 86144 = Safeway
+#   RadioShack 2017              successor "General Wireless" is private — no public XBRL; src 1668010 = Digital Brands
+#   Chesapeake Granite Wash      royalty trust 1524769 — 0 us-gaap tags (no standard financials); src 1522767 = MariMed
+#   Caris Life Sciences (2019)   private until 2025 IPO — no historical XBRL; src 1378590 = Bridgeline Digital
+#   RegionalCare Hospital (2016) private (LifePoint merger) — no public XBRL; src 1142417 = Nexstar Media
+#   Avita Medical (2019)         not a bankruptcy/distress event; src 1289419 = Morningstar
+#   Charming Shoppes (2012)      acquired by Ascena Retail — an M&A, not Chapter 11; src 768835 = Former BL Stores
+#   Callon Petroleum (2020)      did NOT file Ch.11 — survived 2020, later acquired by APA (2024); src 928054 = Flotek
+#   Metals USA (2011)            acquired by Reliance Steel (2013); no 2011 bankruptcy; src 1004702 = OceanFirst Financial
+# ----------------------------------------------------------------------------------------
 
 HEALTHY: list[Case] = [
     Case("Apple",             "0000320193", None, ("APPLE",)),
